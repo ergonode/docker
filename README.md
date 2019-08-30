@@ -14,7 +14,15 @@ Next, you must clone frontend and backend repositories to ergonode directory:
 {path}/ergonode/frontend
 ```
 
-Next, you will need to enter docker directory and start docker by simple command
+Next, you will need to enter docker directory and copy ``.env.dist``
+
+```bash
+cp .env.dist .env
+```
+
+Remember to setup correct ports in backend and frontend application.
+
+Now you can start start docker by simple command
 
 ```bash
 bin/docker on
@@ -60,6 +68,14 @@ If you want to stop ergonode docker
 
 ```bash
 bin/docker off
+```
+
+If you want to enter some container
+
+```bash
+docker exec -it "ergonode-php-dev" bash
+docker exec -it "ergonode-postgres-dev" bash
+docker exec -it "ergonode-node-dev" bash
 ```
 
 ## FAQ
