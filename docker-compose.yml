@@ -1,0 +1,69 @@
+version: "3.3"
+services:
+    ergonode-postgres:
+        image: "postgres:10-alpine"
+        container_name: "ergonode-postgres-${CONTAINER_SUFFIX}"
+        working_dir: "/"
+        volumes:
+            - "./data/.postgres:/var/lib/postgresql/data"
+        environment:
+            - "POSTGRES_USER=postgres"
+            - "POSTGRES_PASSWORD=123"
+            - "POSTGRES_DB=ergonode"
+        ports:
+            - "${POSTGRES_PORT}:5432"
+
+    ergonode-php:
+        build:
+            context: "./config/php"
+        command: 'bash -c "cd /var/www && composer install -o && bin/console -v s:r 0.0.0.0:8001"'
+        container_name: "ergonode-php-${CONTAINER_SUFFIX}"
+        working_dir: "/"
+        volumes:
+            - "./../backend:/var/www"
+            - "./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini"
+        ports:
+            - "${PHP_PORT}:8001"
+        depends_on:
+            - "ergonode-postgres"
+#            - "ergonode-mail"
+#            - "ergonode-rabbitmq"
+        links:
+            - "ergonode-postgres"
+#            - "ergonode-mail"
+#            - "ergonode-rabbitmq"
+
+#    ergonode-rabbitmq:
+#        image: "rabbitmq:3.7.13"
+#        container_name: "ergonode-rabbitmq-${CONTAINER_SUFFIX}"
+#        volumes:
+#            - "./config/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+#        ports:
+#            - "${RABBITMQ_WEB_PORT}:15672"
+#            - "${RABBITMQ_PORT}:5672"
+
+#    ergonode-mail:
+#        image: "djfarrelly/maildev"
+#        container_name: "ergonode-mail-${CONTAINER_SUFFIX}"
+#        ports:
+#            - "${MAIL_WEB_PORT}:8025"
+#            - "${MAIL_PORT}:1025"
+
+    ergonode-node:
+        image: "node:12.6.0"
+        container_name: "ergonode-node-${CONTAINER_SUFFIX}"
+        command: 'bash -c "cd /application && npm install && HOST=0.0.0.0 PORT=80 npm run dev"'
+        volumes:
+            - "./../frontend:/application"
+        ports:
+            - "${NODE_PORT}:80"
+
+    ergonode-docs:
+        build:
+            context: "./config/docs"
+        container_name: "ergonode-docs-${CONTAINER_SUFFIX}"
+        command: 'bash -c "cd /application && docsify serve docs"'
+        volumes:
+            - "./../docs:/application"
+        ports:
+            - "${DOCS_PORT}:3000"
