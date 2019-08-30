@@ -20,12 +20,6 @@ Next, you will need to enter docker directory and start docker by simple command
 bin/docker on
 ```
 
-If you use it first time, you will need to install all dependencies. We will help you with that with simple command
-
-```bash
-bin/docker install
-```
-
 Enjoy :)
 
 ## Ok, but what now?
@@ -55,6 +49,12 @@ http://localhost:15672
 ```
 
 ## What can i do with this creature?
+
+If you want to start ergonode docker
+
+```bash
+bin/docker on
+```
 
 If you want to stop ergonode docker
 

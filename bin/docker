@@ -7,9 +7,6 @@ case $1 in
     'off' )
         (docker-compose -f docker-compose.yml down --remove-orphans --volumes)
         ;;
-    'install' )
-        (./tools/install)
-        ;;
     'rebuild' )
         (docker-compose -f docker-compose.yml build)
         ;;
@@ -19,7 +16,6 @@ case $1 in
         echo 'Env commands:';
         printf "on - Runs docker-composer\n";
         printf "off - Stop and remove containers, networks, images, and volumes\n";
-        printf "install - Install basic environment\n";
         printf "rebuild - Stop and remove containers, networks, images, and volumes\n";
         ;;
 esac
