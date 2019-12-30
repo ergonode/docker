@@ -77,6 +77,16 @@ If you want to stop ergonode docker
 docker-compose stop
 ```
 
+To run all tests execute 
+```
+docker-compose exec php bin/phing test
+```
+
+To run symfony console 
+```
+docker-compose exec php bin/console
+```
+
 If you want to enter some container
 
 ```bash
