@@ -1,0 +1,45 @@
+upstream php-upstream {
+    server ${PHP_UPSTREAM_HOST}:9000;
+}
+
+server {
+    server_name symfony;
+    root /srv/app/public;
+
+    location / {
+        try_files ${DOLLAR}uri /index.php${DOLLAR}is_args${DOLLAR}args;
+        # kill cache
+
+        add_header Last-Modified ${DOLLAR}date_gmt;
+        add_header Cache-Control 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+        if_modified_since off;
+        expires off;
+        etag off;
+    }
+
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass php-upstream;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        # When you are using symlinks to link the document root to the
+        # current version of your application, you should pass the real
+        # application path instead of the path to the symlink to PHP
+        # FPM.
+        # Otherwise, PHP's OPcache may not properly detect changes to
+        # your PHP files (see https://github.com/zendtech/ZendOptimizerPlus/issues/126
+        # for more information).
+
+        fastcgi_param SCRIPT_FILENAME ${DOLLAR}realpath_root${DOLLAR}fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT ${DOLLAR}realpath_root;
+        # Prevents URIs that include the front controller. This will 404:
+        # http://domain.tld/index.php/some-path
+        # Remove the internal directive to allow URIs like this
+        internal;
+    }
+
+    # return 404 for all other php files not matching the front controller
+    # this prevents access to other php files you don't want to be accessible.
+    location ~ \.php$ {
+        return 404;
+    }
+}

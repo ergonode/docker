@@ -6,26 +6,33 @@ This is only a development solution! Do not use it on production environments!
 
 At first you must install Docker and Docker Compose (https://docs.docker.com/compose).
 
-Next, you must clone frontend and backend repositories to ergonode directory:
+Next, you must clone frontend and backend and docs repositories to ergonode directory:
 
 ```bash
-{path}/ergonode/backend
-{path}/ergonode/docker
-{path}/ergonode/frontend
+mkdir ergonode
+cd ergonode
+git clone git@github.com:ergonode/docker.git
+git clone git@github.com:ergonode/frontend.git
+git clone git@github.com:ergonode/backend.git
+git clone git@github.com:ergonode/docs.git
 ```
 
 Next, you will need to enter docker directory and copy ``.env.dist``
 
 ```bash
+cd docker
 cp .env.dist .env
 ```
+
+If you want to test ergonode in multiple directories you need to change in the  `.env` file
+COMPOSE_PROJECT_NAME env var to some unique value
 
 Remember to setup correct ports in backend and frontend application.
 
 Now you can start start docker by simple command
 
 ```bash
-bin/docker on
+docker-compose up
 ```
 
 Enjoy :)
@@ -41,7 +48,7 @@ http://localhost
 if you want to view backend API doc just type address from below into your browser
 
 ```
-http://locahost:8001/api/doc
+http://localhost:8001/api/doc
 ```
 
 If you want to review email messages from application, type address from below into your browser
@@ -61,21 +68,21 @@ http://localhost:15672
 If you want to start ergonode docker
 
 ```bash
-bin/docker on
+docker-compose start
 ```
 
 If you want to stop ergonode docker
 
 ```bash
-bin/docker off
+docker-compose stop
 ```
 
 If you want to enter some container
 
 ```bash
-docker exec -it "ergonode-php-dev" bash
-docker exec -it "ergonode-postgres-dev" bash
-docker exec -it "ergonode-node-dev" bash
+docker-compose exec php bash
+docker-compose exec postgres bash
+docker-compose exec node bash
 ```
 
 ## FAQ
