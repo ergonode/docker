@@ -17,8 +17,8 @@ services:
         ports:
             - "${EXPOSED_POSTGRES_PORT}:5432"
         healthcheck:
-            test: ["CMD", "postgres-healthcheck.sh"]
-            interval: 1m
+            test: ["CMD", "bash", "-c", "/usr/local/bin/postgres-healthcheck.sh"]
+            interval: 30s
             timeout: 10s
             retries: 3
             start_period: 5s
