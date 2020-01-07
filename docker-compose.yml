@@ -21,9 +21,6 @@ services:
         env_file:
             - ../backend/.env
             - ./.env
-
-
-
         depends_on:
             - postgres
         links:
@@ -56,6 +53,7 @@ services:
             - "${EXPOSED_NODE_PORT}:80"
         environment:
             EXPOSED_NODE_PORT: ${EXPOSED_NODE_PORT}
+            API_PORT: ${API_PORT}
     docs:
         build:
             context: "./"
