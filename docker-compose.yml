@@ -1,69 +1,65 @@
-version: "3.3"
+version: "3.4"
 services:
-    ergonode-postgres:
+    postgres:
         image: "postgres:10-alpine"
-        container_name: "ergonode-postgres-${CONTAINER_SUFFIX}"
-        working_dir: "/"
         volumes:
             - "./data/.postgres:/var/lib/postgresql/data"
         environment:
-            - "POSTGRES_USER=postgres"
-            - "POSTGRES_PASSWORD=123"
-            - "POSTGRES_DB=ergonode"
+            - "POSTGRES_USER=${POSTGRES_USER}"
+            - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+            - "POSTGRES_DB=${POSTGRES_DB}"
         ports:
-            - "${POSTGRES_PORT}:5432"
-
-    ergonode-php:
+            - "${EXPOSED_POSTGRES_PORT}:5432"
+    php:
         build:
-            context: "./config/php"
-        command: 'bash -c "cd /var/www && composer install -o && bin/console -v s:r 0.0.0.0:8001"'
-        container_name: "ergonode-php-${CONTAINER_SUFFIX}"
-        working_dir: "/"
+            context: "./"
+            target: ${PHP_FINAL_TARGET}
+        working_dir: /srv/app
         volumes:
-            - "./../backend:/var/www"
-            - "./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini"
-        ports:
-            - "${PHP_PORT}:8001"
+            - ./../backend:/srv/app
+            - ./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini
+        env_file:
+            - ../backend/.env
+            - ./.env
         depends_on:
-            - "ergonode-postgres"
-#            - "ergonode-mail"
-#            - "ergonode-rabbitmq"
+            - postgres
         links:
-            - "ergonode-postgres"
-#            - "ergonode-mail"
-#            - "ergonode-rabbitmq"
-
-#    ergonode-rabbitmq:
-#        image: "rabbitmq:3.7.13"
-#        container_name: "ergonode-rabbitmq-${CONTAINER_SUFFIX}"
-#        volumes:
-#            - "./config/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
-#        ports:
-#            - "${RABBITMQ_WEB_PORT}:15672"
-#            - "${RABBITMQ_PORT}:5672"
-
-#    ergonode-mail:
-#        image: "djfarrelly/maildev"
-#        container_name: "ergonode-mail-${CONTAINER_SUFFIX}"
-#        ports:
-#            - "${MAIL_WEB_PORT}:8025"
-#            - "${MAIL_PORT}:1025"
-
-    ergonode-node:
-        image: "node:12.6.0"
-        container_name: "ergonode-node-${CONTAINER_SUFFIX}"
-        command: 'bash -c "cd /application && npm install && HOST=0.0.0.0 PORT=80 npm run dev"'
-        volumes:
-            - "./../frontend:/application"
-        ports:
-            - "${NODE_PORT}:80"
-
-    ergonode-docs:
+            - postgres
+    nginx:
         build:
-            context: "./config/docs"
-        container_name: "ergonode-docs-${CONTAINER_SUFFIX}"
-        command: 'bash -c "cd /application && docsify serve docs"'
+            context: ./
+            target: nginx_final
         volumes:
-            - "./../docs:/application"
+            - ./../backend:/srv/app
+            - ./config/nginx/conf.d/symfony-development.conf.template:/etc/nginx/conf.d/symfony-development.conf.template:ro
+            - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+        working_dir: /srv/app
+        environment:
+            PHP_UPSTREAM_HOST: php
+            DOLLAR: "$$"
         ports:
-            - "${DOCS_PORT}:3000"
+            - "${EXPOSED_NGINX_PORT}:80"
+        depends_on:
+            - php
+        command: /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+    node:
+        build:
+            context: "./"
+            target: node_final
+        working_dir: /srv/app
+        volumes:
+            - "./../frontend:/srv/app"
+        ports:
+            - "${EXPOSED_NODE_PORT}:80"
+        environment:
+            EXPOSED_NODE_PORT: ${EXPOSED_NODE_PORT}
+            API_PORT: ${API_PORT}
+    docs:
+        build:
+            context: "./"
+            target: docs_final
+        working_dir: /srv/app
+        volumes:
+            - "./../docs:/srv/app"
+        ports:
+            - "${EXPOSED_DOCS_PORT}:3000"
