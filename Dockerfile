@@ -28,6 +28,7 @@ RUN docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
     intl \
+    pcntl \
     && docker-php-ext-enable amqp \
     && docker-php-ext-enable opcache
 
