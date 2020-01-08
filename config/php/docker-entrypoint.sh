@@ -35,8 +35,7 @@ if [ "$1" = 'php-fpm' ] ; then
     fi
 
     bin/console ergonode:jwt:generate-keys
-  	chown root:www-data "${JWT_PRIVATE_KEY_PATH}"
-  	chmod 640 "${JWT_PRIVATE_KEY_PATH}"
+    bin/console ergonode:jwt:fix-permissions --private-key-group www-data
 
      >&2 echo "Waiting for db to be ready..."
     until bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do

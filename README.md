@@ -59,7 +59,7 @@ And to test app you can login as `test@ergonode.com` with password `abcd1234`
 If you want to view backend API doc just type address from below into your browser
 
 ```
-http://localhost:8001/api/doc
+http://localhost:8000/api/doc
 ```
 
 If you want to review email messages from application, type address from below into your browser
