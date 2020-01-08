@@ -34,7 +34,6 @@ if [ "$1" = 'php-fpm' ] ; then
         composer install --prefer-dist --no-progress --no-suggest --no-interaction
     fi
 
-
     bin/console ergonode:jwt:generate-keys
   	chown root:www-data "${JWT_PRIVATE_KEY_PATH}"
   	chmod 640 "${JWT_PRIVATE_KEY_PATH}"

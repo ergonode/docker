@@ -27,25 +27,36 @@ cp .env.dist .env
 If you want to test ergonode in multiple directories you need to change in the  `.env` file
 COMPOSE_PROJECT_NAME env var to some unique value
 
-Remember to setup correct ports in backend and frontend application.
-
 Now you can start start docker by simple command
 
 ```bash
 docker-compose up
 ```
 
+Now you can fill  app database with basic data by using command
+```
+docker-compose exec php bin/phing database:fixture
+```
+
+Or fill database with development data with command
+```
+docker-compose exec php bin/phing database:fixture:dev
+```
+
 Enjoy :)
 
 ## Ok, but what now?
 
-if you want to view frontend panel just type address from below into your browser
+
+If you want to view frontend panel just type address from below into your browser
 
 ```
 http://localhost
 ```
 
-if you want to view backend API doc just type address from below into your browser
+And to test app you can login as `test@ergonode.com` with password `abcd1234`
+
+If you want to view backend API doc just type address from below into your browser
 
 ```
 http://localhost:8001/api/doc
@@ -65,18 +76,6 @@ http://localhost:15672
 
 ## What can i do with this creature?
 
-If you want to start ergonode docker
-
-```bash
-docker-compose start
-```
-
-If you want to stop ergonode docker
-
-```bash
-docker-compose stop
-```
-
 To run all tests execute 
 ```
 docker-compose exec php bin/phing test
@@ -85,6 +84,11 @@ docker-compose exec php bin/phing test
 To run symfony console 
 ```
 docker-compose exec php bin/console
+```
+
+To add new users you can use command 
+```
+docker-compose exec php bin/console ergonode:user:create  <email> <first_name> <last_name> <password> <language> [<role>]
 ```
 
 If you want to enter some container
