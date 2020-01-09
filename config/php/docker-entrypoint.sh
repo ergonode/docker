@@ -34,8 +34,14 @@ if [ "$1" = 'php-fpm' ] ; then
         composer install --prefer-dist --no-progress --no-suggest --no-interaction
     fi
 
-    bin/console ergonode:jwt:generate-keys
-    bin/console ergonode:jwt:fix-permissions --private-key-group www-data
+
+    if [ ! -f "config/jwt/private.pem" ] ; then
+      >&2 echo "Generating jwt keys..."
+      openssl genrsa -aes256 -passout pass:123 -out "config/jwt/private.pem" 4096
+  	  openssl rsa -pubout -in "config/jwt/private.pem"  -passin pass:123 -out "config/jwt/public.pem"
+  	  chown root:www-data "config/jwt/private.pem"
+  	  chmod 640 "config/jwt/public.pem"
+    fi
 
      >&2 echo "Waiting for db to be ready..."
     until bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
