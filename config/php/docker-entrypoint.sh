@@ -35,12 +35,13 @@ if [ "$1" = 'php-fpm' ] ; then
     fi
 
 
-    if [ ! -f "${JWT_PRIVATE_KEY_PATH}" ] && [[ -n "${JWT_PASSPHRASE}" ]]; then
+    if [ ! -f "config/jwt/private.pem" ] ; then
       >&2 echo "Generating jwt keys..."
-      openssl genrsa -aes256 -passout env:JWT_PASSPHRASE -out "${JWT_PRIVATE_KEY_PATH}" 4096
-  	  openssl rsa -pubout -in "${JWT_PRIVATE_KEY_PATH}"  -passin env:JWT_PASSPHRASE -out "${JWT_PUBLIC_KEY_PATH}"
-  	  chown root:www-data "${JWT_PRIVATE_KEY_PATH}"
-  	  chmod 640 "${JWT_PRIVATE_KEY_PATH}"
+      openssl genrsa -aes256 -passout pass:1234 -out "config/jwt/private.pem" 4096
+  	  openssl rsa -pubout -in "config/jwt/private.pem"  -passin pass:1234 -out "config/jwt/public.pem"
+  	  chown root:www-data "config/jwt/private.pem"
+  	  chmod 640 "config/jwt/private.pem"
+  	  chmod 640 "config/jwt/public.pem"
     fi
 
      >&2 echo "Waiting for db to be ready..."

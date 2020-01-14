@@ -20,6 +20,7 @@ RUN apt-get -y update \
         libicu-dev \
         graphviz \
         acl \
+        libfcgi-bin \
     && apt-get clean \
     && pecl install amqp-1.9.4
 
@@ -28,6 +29,7 @@ RUN docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
     intl \
+    pcntl \
     && docker-php-ext-enable amqp \
     && docker-php-ext-enable opcache
 
@@ -72,7 +74,7 @@ FROM nginx:1.17 AS nginx
 RUN apt-get update && apt-get install -y \
     curl
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost/api/doc || exit 1
 
 FROM nginx as nginx_final
 
@@ -83,6 +85,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint
 
 ENV HOST=0.0.0.0
 ENV PORT=80
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost || exit 1
 
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["npm", "run", "dev"]
@@ -91,6 +94,9 @@ FROM node as node_final
 
 FROM node as docs
 RUN npm install docsify-cli -g
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost:3000 || exit 1
+
 CMD ["docsify", "serve" ,"docs"]
 
 FROM docs as docs_final

@@ -4,12 +4,24 @@ services:
         image: "postgres:10-alpine"
         volumes:
             - "./data/.postgres:/var/lib/postgresql/data"
+            - "./config/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
+            - "./config/postgres/postgres-healthcheck.sh:/usr/local/bin/postgres-healthcheck.sh"
         environment:
-            - "POSTGRES_USER=${POSTGRES_USER}"
-            - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
-            - "POSTGRES_DB=${POSTGRES_DB}"
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+            APP_USER: ${APP_USER}
+            APP_USER_PASSWORD: ${APP_USER_PASSWORD}
+            APP_DB: ${APP_DB}
+            APP_TEST_DB: ${APP_TEST_DB}
         ports:
             - "${EXPOSED_POSTGRES_PORT}:5432"
+        healthcheck:
+            test: ["CMD", "bash", "-c", "/usr/local/bin/postgres-healthcheck.sh"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 5s
     php:
         build:
             context: "./"
@@ -19,8 +31,7 @@ services:
             - ./../backend:/srv/app
             - ./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini
         env_file:
-            - ../backend/.env
-            - ./.env
+          - ./.env
         depends_on:
             - postgres
         links:
