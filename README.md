@@ -62,18 +62,6 @@ If you want to view backend API doc just type address from below into your brows
 http://localhost:8000/api/doc
 ```
 
-If you want to review email messages from application, type address from below into your browser
-
-```
-http://localhost:8025
-```
-
-If you want to review messages on RabbitMQ, type address from below into your browser
-
-```
-http://localhost:15672
-```
-
 ## What can i do with this creature?
 
 To run all tests execute 
@@ -118,11 +106,10 @@ A: No problem ! Just tell us about your idea and we will discuse it. Bring lot o
 
 ```
 Q: This is awesome, how can i thank you?
-A: No problem. Just send me an email to sebastian.bielawski@strix.net and attach a beer
+A: No problem. Just send me an email to daniel.marynicz@strix.net and attach a beer
 ```
 
 ```
 Q: This is bullshit, how can i thank you for this crap?
-A: No problem. Just send me an email to sebastian.bielawski@strix.net but don't forget attach a beer
+A: No problem. Just send me an email to daniel.marynicz@strix.net but don't forget attach a beer
 ```
-
