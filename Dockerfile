@@ -5,7 +5,7 @@
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 
-FROM php:7.2-fpm as php
+FROM php:7.4-fpm as php
 
 # Basic tools
 RUN apt-get -y update \
