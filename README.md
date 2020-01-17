@@ -2,6 +2,14 @@
 
 This is only a development solution! Do not use it on production environments!
 
+## the docker uses the following services
+
+ - PostgreSQL 10
+ - PHP 7.4
+ - NGINX 1.17
+ - Docsify 4
+ - Nodejs 12.6 
+ 
 ## How the hell should I install it all ?!
 
 At first you must install Docker and Docker Compose (https://docs.docker.com/compose).
