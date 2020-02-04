@@ -70,6 +70,12 @@ If you want to view backend API doc just type address from below into your brows
 http://localhost:8000/api/doc
 ```
 
+If you want to review messages on RabbitMQ, type address from below into your browser
+
+```
+http://localhost:15672
+```
+
 ## What can i do with this creature?
 
 To run all tests execute 
