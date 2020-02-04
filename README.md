@@ -9,6 +9,7 @@ This is only a development solution! Do not use it on production environments!
  - NGINX 1.17
  - Docsify 4
  - Nodejs 12.6 
+ - RabbitMQ 3.8
  
 ## How the hell should I install it all ?!
 
