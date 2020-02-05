@@ -60,14 +60,62 @@ ENTRYPOINT ["docker-entrypoint"]
 
 CMD ["php-fpm"]
 
-FROM php as php_final
-
-FROM php_final as php_final_with_xdebug
+FROM php as php_development
 
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 RUN echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 RUN echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
+
+WORKDIR /srv/app
+
+COPY  backend/composer.json \
+    backend/composer.lock \
+    backend/symfony.lock \
+    backend/.env \
+    backend/.env.test \
+    backend/phpunit.xml.dist \
+    backend/phpstan.neon.dist \
+    backend/phpcs.xml.dist \
+    backend/behat.yml.dist \
+    backend/depfile.yml \
+    backend/.travis.yml \
+      ./
+
+RUN set -eux; \
+	composer install --prefer-dist --no-autoloader --no-scripts --no-progress --no-suggest; \
+	composer clear-cache
+
+COPY backend/bin bin/
+COPY backend/config config/
+COPY backend/module module/
+COPY backend/public public/
+COPY backend/src src/
+COPY backend/templates templates/
+COPY backend/translations translations/
+
+RUN set -eux; \
+	mkdir -p config/jwt var/cache var/log import public/multimedia; \
+	composer dump-autoload --optimize; \
+    composer run-script post-install-cmd; \
+	chmod +x bin/console; sync
+
+RUN bin/console cache:clear --env=prod --no-debug
+
+FROM php_development as php_final_with_xdebug
+
+FROM php_development as php_production
+
+#clean up
+# do not use .env /  test files in production
+RUN rm -f .env* \
+     *.dist \
+     *.md \
+     .travis.yml  \
+     depfile.yml \
+     config/jwt/*.pem
+
+RUN echo '<?php return [];' > /srv/app/.env.local.php
 
 FROM nginx:1.17 AS nginx
 
@@ -76,7 +124,20 @@ RUN apt-get update && apt-get install -y \
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost/api/doc || exit 1
 
-FROM nginx as nginx_final
+FROM nginx as nginx_development
+
+ADD ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
+ADD ./config/nginx/nginx.conf /etc/nginx/nginx.conf
+
+CMD /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+
+FROM nginx_development as nginx_production
+
+ADD ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
+
+CMD /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-production.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+
+COPY --from=php_production /srv/app /srv/app
 
 FROM node:12.6 as node
 
@@ -90,7 +151,20 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://local
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["npm", "run", "dev"]
 
-FROM node as node_final
+FROM node as node_development
+
+WORKDIR /srv/app
+
+COPY frontend /srv/app/
+RUN npm install
+
+FROM node_development as node_production
+WORKDIR /srv/app
+#clean up
+# do not use .env /  test files in production
+RUN rm -f .env*
+
+CMD ["npm", "run", "start"]
 
 FROM node as docs
 RUN npm install docsify-cli -g

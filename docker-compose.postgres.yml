@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  postgres:
+    image: "postgres:10-alpine"
+    volumes:
+      - "./data/.postgres:/var/lib/postgresql/data"
+      - "./config/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
+      - "./config/postgres/postgres-healthcheck.sh:/usr/local/bin/postgres-healthcheck.sh"
+    restart: always
+    healthcheck:
+      test: ["CMD", "bash", "-c", "/usr/local/bin/postgres-healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing mandatory value for $POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      APP_USER: ${APP_USER:-ergonode}
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?Missing mandatory value for $APP_USER_PASSWORD}
+      APP_DB: ${APP_DB:-ergonode}

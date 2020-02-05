@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.7"
 services:
     postgres:
         image: "postgres:10-alpine"
@@ -28,6 +28,7 @@ services:
             context: "./"
             target: ${PHP_FINAL_TARGET}
         working_dir: /srv/app
+        image: ${CONTAINER_REGISTRY_BASE}/php
         volumes:
             - ./../backend:/srv/app
             - ./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini
@@ -41,7 +42,8 @@ services:
     nginx:
         build:
             context: ./
-            target: nginx_final
+            target: nginx_development
+        image: ${CONTAINER_REGISTRY_BASE}/nginx
         volumes:
             - ./../backend:/srv/app
             - ./config/nginx/conf.d/symfony-development.conf.template:/etc/nginx/conf.d/symfony-development.conf.template:ro
@@ -59,7 +61,8 @@ services:
     node:
         build:
             context: "./"
-            target: node_final
+            target: node_development
+        image: ${CONTAINER_REGISTRY_BASE}/node
         working_dir: /srv/app
         volumes:
             - "./../frontend:/srv/app"
@@ -73,6 +76,7 @@ services:
         build:
             context: "./"
             target: docs_final
+        image: ${CONTAINER_REGISTRY_BASE}/docs
         working_dir: /srv/app
         volumes:
             - "./../docs:/srv/app"
