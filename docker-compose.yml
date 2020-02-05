@@ -16,6 +16,7 @@ services:
             APP_TEST_DB: ${APP_TEST_DB}
         ports:
             - "${EXPOSED_POSTGRES_PORT}:5432"
+        restart: always
         healthcheck:
             test: ["CMD", "bash", "-c", "/usr/local/bin/postgres-healthcheck.sh"]
             interval: 30s
@@ -36,6 +37,7 @@ services:
             - postgres
         links:
             - postgres
+        restart: always
     nginx:
         build:
             context: ./
@@ -53,6 +55,7 @@ services:
         depends_on:
             - php
         command: /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+        restart: always
     node:
         build:
             context: "./"
@@ -65,6 +68,7 @@ services:
         environment:
             EXPOSED_NODE_PORT: ${EXPOSED_NODE_PORT}
             API_PORT: ${API_PORT}
+        restart: always
     docs:
         build:
             context: "./"
@@ -74,3 +78,21 @@ services:
             - "./../docs:/srv/app"
         ports:
             - "${EXPOSED_DOCS_PORT}:3000"
+        restart: always
+    rabbitmq:
+        image: "rabbitmq:3.8-management"
+        volumes:
+            - "./config/rabbitmq/rabbitmq-healthcheck.sh:/usr/local/bin/rabbitmq-healthcheck.sh"
+        healthcheck:
+            test: ["CMD", "bash", "-c", "/usr/local/bin/rabbitmq-healthcheck.sh"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 5s
+        restart: always
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+        ports:
+            - "${EXPOSED_RABBITMQ_PORT}:5672"
+            - "${EXPOSED_RABBITMQ_WEB_PORT}:15672"

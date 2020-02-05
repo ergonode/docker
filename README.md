@@ -9,6 +9,7 @@ This is only a development solution! Do not use it on production environments!
  - NGINX 1.17
  - Docsify 4
  - Nodejs 12.6 
+ - RabbitMQ 3.8
  
 ## How the hell should I install it all ?!
 
@@ -68,6 +69,12 @@ If you want to view backend API doc just type address from below into your brows
 
 ```
 http://localhost:8000/api/doc
+```
+
+If you want to review messages on RabbitMQ, type address from below into your browser
+
+```
+http://localhost:15672
 ```
 
 ## What can i do with this creature?
