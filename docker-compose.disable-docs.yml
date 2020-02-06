@@ -1,5 +1,0 @@
-version: "3.7"
-services:
-  docs:
-    entrypoint: ["echo", "Service docs disabled"]
-    restart: "no"

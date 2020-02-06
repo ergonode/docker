@@ -2,9 +2,6 @@
 version: "3.7"
 services:
   php:
-    build:
-      context: "./"
-      target: php_production
     image: ${CONTAINER_REGISTRY_BASE}/php
     restart: always
     environment:
@@ -24,9 +21,6 @@ services:
       - "ergonode_import:/srv/app/import"
       - "ergonode_jwt:/srv/app/config/jwt"
   node:
-    build:
-      context: "./"
-      target: node_production
     image: ${CONTAINER_REGISTRY_BASE}/node
     restart: always
     environment:
@@ -36,9 +30,6 @@ services:
       API_PREFIX: ${API_PREFIX:-/api/v1/}
 
   nginx:
-    build:
-      context: "./"
-      target: nginx_production
     image: ${CONTAINER_REGISTRY_BASE}/nginx
     restart: always
     environment:

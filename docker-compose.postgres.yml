@@ -3,7 +3,7 @@ services:
   postgres:
     build:
       context: "./"
-      target: php_production
+      target: postgres_production
     image: ${CONTAINER_REGISTRY_BASE}/postgres
     volumes:
       - "./data/.postgres:/var/lib/postgresql/data"

@@ -1,0 +1,26 @@
+#example docker-compose for running tests
+version: "3.7"
+services:
+  php:
+    build:
+      context: "./"
+      target: php_development
+    image: ${CONTAINER_REGISTRY_BASE}/php
+    environment:
+      APP_ENV: prod
+      JWT_PRIVATE_KEY_PATH: config/jwt/private.pem
+      JWT_PUBLIC_KEY_PATH: config/jwt/public.pem
+      JWT_PASSPHRASE: 1234
+  postgres:
+    build:
+      context: "./"
+      target: postgres_development
+    image: ${CONTAINER_REGISTRY_BASE}/postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: postgres
+      APP_USER: ergonode
+      APP_USER_PASSWORD: 123
+      APP_DB: ergonode
+      APP_TEST_DB: ergonode_test

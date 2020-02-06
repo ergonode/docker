@@ -33,7 +33,7 @@ function genereJwtKeys() {
   openssl rsa -pubout -in  "${privatePath}"  -passin "${passArg}" -out "${publicPath}"
 }
 
-function fixPermissionForProductionJwtKeys() {
+function fixPermissionForJwtKeys() {
   local privatePath=$1
   local publicPath=$2
 
@@ -50,10 +50,10 @@ function genereJwtKeysIfInvalid() {
 
   if ! jwtKeysAreCorrect  "${privatePath}" "${publicPath}" "${passArg}"; then
     >&2 echo "Generating jwt keys..."
-    genereProductionJwtKeys "${privatePath}" "${publicPath}" "${passArg}"
+    genereJwtKeys "${privatePath}" "${publicPath}" "${passArg}"
   fi
 
-  fixPermissionForProductionJwtKeys "${privatePath}" "${publicPath}"
+  fixPermissionForJwtKeys "${privatePath}" "${publicPath}"
 }
 
 # first arg is `-f` or `--some-option`

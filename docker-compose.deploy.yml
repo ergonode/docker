@@ -1,0 +1,23 @@
+#example docker-compose for production environment
+version: "3.7"
+services:
+  php:
+    build:
+      context: "./"
+      target: php_production
+    image: ${CONTAINER_REGISTRY_BASE}/php
+  node:
+    build:
+      context: "./"
+      target: node_production
+    image: ${CONTAINER_REGISTRY_BASE}/node
+  nginx:
+    build:
+      context: "./"
+      target: nginx_production
+    image: ${CONTAINER_REGISTRY_BASE}/nginx
+  postgres:
+    build:
+      context: "./"
+      target: postgres_production
+    image: ${CONTAINER_REGISTRY_BASE}/postgres

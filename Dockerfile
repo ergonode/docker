@@ -34,6 +34,8 @@ RUN apt-get -y update \
     && apt-get clean \
     && pecl install amqp-1.9.4
 
+ADD ./config/php/override.ini /usr/local/etc/php/conf.d/override.ini
+
 # PHP extensionns
 RUN docker-php-ext-install -j$(nproc) \
     pdo  \
@@ -90,6 +92,7 @@ COPY  backend/composer.json \
     backend/behat.yml.dist \
     backend/depfile.yml \
     backend/.travis.yml \
+    backend/build.xml \
       ./
 
 RUN set -eux; \
