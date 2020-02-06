@@ -1,3 +1,4 @@
+#example docker-compose for production environment
 version: "3.7"
 services:
   php:
@@ -21,6 +22,7 @@ services:
     volumes:
       - "ergonode_multimedia:/srv/app/public/mutimedia"
       - "ergonode_import:/srv/app/import"
+      - "ergonode_jwt:/srv/app/config/jwt"
   node:
     build:
       context: "./"
@@ -50,3 +52,4 @@ services:
 volumes:
   ergonode_multimedia:
   ergonode_import:
+  ergonode_jwt:

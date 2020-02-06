@@ -1,15 +1,59 @@
 #!/bin/bash
 
-function disable-xdebug() {
+set -e
+
+function disableXdebug() {
   if [ -f "/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini" ] ; then
     mv /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/docker-php-ext-xdebug.ini
   fi
 }
 
-function enable-xdebug() {
+function enableXdebug() {
   if [ -f "/usr/local/etc/docker-php-ext-xdebug.ini" ] ; then
     mv /usr/local/etc/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
   fi
+}
+
+function jwtKeysAreCorrect() {
+  local privatePath=$1
+  local publicPath=$2
+  local passArg=$3
+
+  echo 1234 > /tmp/to-sign.txt
+  openssl dgst -sha256 -sign   "${privatePath}" -passin "${passArg}"  -out /tmp/sign.sha256 /tmp/to-sign.txt 2>/dev/null
+  openssl dgst -sha256 -verify "${publicPath}" -signature /tmp/sign.sha256 /tmp/to-sign.txt 2>/dev/null
+}
+
+function genereJwtKeys() {
+  local privatePath=$1
+  local publicPath=$2
+  local passArg=$3
+
+  openssl genrsa -aes256 -passout "${passArg}" -out "${privatePath}" 4096
+  openssl rsa -pubout -in  "${privatePath}"  -passin "${passArg}" -out "${publicPath}"
+}
+
+function fixPermissionForProductionJwtKeys() {
+  local privatePath=$1
+  local publicPath=$2
+
+  chown root:www-data "${privatePath}"
+  chmod 640 "${privatePath}"
+  chmod 640  "${publicPath}"
+}
+
+
+function genereJwtKeysIfInvalid() {
+  local privatePath=$1
+  local publicPath=$2
+  local passArg=$3
+
+  if ! jwtKeysAreCorrect  "${privatePath}" "${publicPath}" "${passArg}"; then
+    >&2 echo "Generating jwt keys..."
+    genereProductionJwtKeys "${privatePath}" "${publicPath}" "${passArg}"
+  fi
+
+  fixPermissionForProductionJwtKeys "${privatePath}" "${publicPath}"
 }
 
 # first arg is `-f` or `--some-option`
@@ -35,32 +79,27 @@ if [ "$1" = 'php-fpm' ] ; then
     setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia  >/dev/null 2>&1
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia >/dev/null 2>&1
 
-    disable-xdebug
 
-    if [ "$APP_ENV" != 'prod' ]; then
-      composer install --prefer-dist --no-progress --no-suggest --no-interaction
 
-      if [ ! -f "config/jwt/private.pem" ] ; then
-        >&2 echo "Generating jwt keys..."
-        openssl genrsa -aes256 -passout pass:1234 -out "config/jwt/private.pem" 4096
-        openssl rsa -pubout -in "config/jwt/private.pem"  -passin pass:1234 -out "config/jwt/public.pem"
-        chown root:www-data "config/jwt/private.pem"
-        chmod 640 "config/jwt/private.pem"
-        chmod 640 "config/jwt/public.pem"
-      fi
-
+    if [ "$APP_ENV" == 'prod' ]; then
+      genereJwtKeysIfInvalid "${JWT_PRIVATE_KEY_PATH}" "${JWT_PUBLIC_KEY_PATH}" env:JWT_PASSPHRASE
     fi
 
-      >&2 echo "Waiting for db to be ready..."
-      until bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
-        sleep 1
-	    done
+    if [ "$APP_ENV" != 'prod' ]; then
+      disableXdebug
+      composer install --prefer-dist --no-progress --no-suggest --no-interaction
+      genereJwtKeysIfInvalid "config/jwt/private.pem" "config/jwt/public.pem" pass:1234
+    fi
+
+    >&2 echo "Waiting for db to be ready..."
+    until bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
+      sleep 1
+	  done
 
     if [ "$APP_ENV" != 'prod' ]; then
       bin/phing build
+      enableXdebug
     fi
-
-    enable-xdebug
 
     if [ "$APP_ENV" != 'prod' ]; then
         echo -e "\e[30;48;5;82mergonode  api is available at http://localhost:${EXPOSED_NGINX_PORT} \e[0m"

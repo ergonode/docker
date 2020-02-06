@@ -5,6 +5,16 @@
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 
+FROM postgres:10-alpine as postgres_development
+
+COPY ./config/postgres/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
+ADD ./config/postgres/postgres-healthcheck.sh  /usr/local/bin/postgres-healthcheck.sh
+RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
+
+HEALTHCHECK --start-period=5s CMD bash -c /usr/local/bin/postgres-healthcheck.sh
+
+FROM postgres_development as postgres_production
+
 FROM php:7.4-fpm as php
 
 # Basic tools
@@ -114,6 +124,8 @@ RUN rm -f .env* \
      .travis.yml  \
      depfile.yml \
      config/jwt/*.pem
+
+RUN pecl uninstall xdebug && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 RUN echo '<?php return [];' > /srv/app/.env.local.php
 

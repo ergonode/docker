@@ -15,12 +15,11 @@ This is only a development solution! Do not use it on production environments!
 
 At first you must install Docker and Docker Compose (https://docs.docker.com/compose).
 
-Next, you must clone frontend and backend and docs repositories to ergonode directory:
+Next, you must clone frontend and backend and docs repositories to docker directory:
 
 ```bash
-mkdir ergonode
-cd ergonode
 git clone git@github.com:ergonode/docker.git
+cd docker
 git clone git@github.com:ergonode/frontend.git
 git clone git@github.com:ergonode/backend.git
 git clone git@github.com:ergonode/docs.git
@@ -29,7 +28,6 @@ git clone git@github.com:ergonode/docs.git
 Next, you will need to enter docker directory and copy ``.env.dist``
 
 ```bash
-cd docker
 cp .env.dist .env
 ```
 
