@@ -1,31 +1,48 @@
 # Ergonode production docker
 
 
-## Build with docker-compose
+## Build
  
-You Must copy your  backend and frontend app to docker directory:
+You Must copy your backend and frontend app to docker directory.
+
+### directory structure
+
+```        
+docker/
+├── frontend
+├── backend
+```
 
 
 Next, you will need to set required environment vars and list of this vars you can find in used docker-compose files. 
 
 # 
 
-# build
+## Environment variables
 
-set your environment variables
+Set your **build** environment variables
+
 ```bash
 export COMPOSE_PROJECT_NAME=your-app-name
 export CONTAINER_REGISTRY_BASE=your-registry-url/your-app-name
 ```
 
-* build
+And optionally your IMAGE tag,  by default this is already set to latest. 
+
+```bash
+export IMAGE_TAG=latest
+```
+
+## Build
+
+build with command
 ```bash
 docker-compose build
 ```
 
 test your image
 
-# test
+# Test you images
 ```bash
 
 function finish {
@@ -33,8 +50,8 @@ function finish {
 }
 trap finish EXIT
 
-docker-compose  -f docker-compose.test.yml up -d
-docker-compose  -f docker-compose.test.yml exec php bin/phing test
+docker-compose -f docker-compose.test.yml up -d
+docker-compose -f docker-compose.test.yml exec php bin/phing test
 
 ```
 
@@ -47,9 +64,24 @@ docker login your-registry-url
 docker-compose  -f docker-compose.deploy.yml  push
 ```
 
-# run  in production
-run your docker images in production
+# Run  in production
+run your docker images in production mode
+
+Set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
+
+And run with 
+
 ```bash
-docker-compose  -f docker-compose.production.yml  up -d
+docker-compose -f docker-compose.production.yml  up -d
+```
+Or with optionally with postgres provided by this app.
+
+```bash
+docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml up -d
 ```
 
+And if you need special volumes configuration for postgres the you can edit `docker-compose.postgres-volumes.yml` And Start your app with command.
+
+```bash
+docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml -f docker-compose.postgres-volumes.yml up -d
+```

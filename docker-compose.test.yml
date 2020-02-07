@@ -5,7 +5,9 @@ services:
     build:
       context: "./"
       target: php_development
-    image: ${CONTAINER_REGISTRY_BASE}/php
+      cache_from:
+        - ${CONTAINER_REGISTRY_BASE}/php:latest
+    image: ${CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
     environment:
       APP_ENV: prod
       JWT_PRIVATE_KEY_PATH: config/jwt/private.pem
@@ -15,7 +17,9 @@ services:
     build:
       context: "./"
       target: postgres_development
-    image: ${CONTAINER_REGISTRY_BASE}/postgres
+      cache_from:
+        - ${CONTAINER_REGISTRY_BASE}/postgres:latest
+    image: ${CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123

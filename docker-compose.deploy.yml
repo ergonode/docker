@@ -1,23 +1,32 @@
-#example docker-compose for production environment
+# example docker-compose for push/build for production release
+# this file only require  CONTAINER_REGISTRY_BASE and optional IMAGE_TAG environment variable.
 version: "3.7"
 services:
   php:
     build:
       context: "./"
       target: php_production
-    image: ${CONTAINER_REGISTRY_BASE}/php
+      cache_from:
+        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:latest
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
   node:
     build:
       context: "./"
       target: node_production
-    image: ${CONTAINER_REGISTRY_BASE}/node
+      cache_from:
+        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:latest
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
   nginx:
     build:
       context: "./"
       target: nginx_production
-    image: ${CONTAINER_REGISTRY_BASE}/nginx
+      cache_from:
+        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:latest
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
   postgres:
     build:
       context: "./"
       target: postgres_production
-    image: ${CONTAINER_REGISTRY_BASE}/postgres
+      cache_from:
+        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:latest
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}

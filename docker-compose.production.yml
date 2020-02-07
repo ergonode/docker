@@ -1,8 +1,9 @@
-#example docker-compose for production environment
+# example docker-compose for running images in production environment
+# All mandatory environment variables are required
 version: "3.7"
 services:
   php:
-    image: ${CONTAINER_REGISTRY_BASE}/php
+    image: ${CONTAINER_REGISTRY_BASE}/php${IMAGE_TAG:-latest}
     restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}
@@ -21,7 +22,7 @@ services:
       - "ergonode_import:/srv/app/import"
       - "ergonode_jwt:/srv/app/config/jwt"
   node:
-    image: ${CONTAINER_REGISTRY_BASE}/node
+    image: ${CONTAINER_REGISTRY_BASE}/node${IMAGE_TAG:-latest}
     restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}
@@ -30,7 +31,7 @@ services:
       API_PREFIX: ${API_PREFIX:-/api/v1/}
 
   nginx:
-    image: ${CONTAINER_REGISTRY_BASE}/nginx
+    image: ${CONTAINER_REGISTRY_BASE}/nginx${IMAGE_TAG:-latest}
     restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}
