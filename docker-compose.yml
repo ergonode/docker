@@ -32,8 +32,11 @@ services:
         volumes:
             - ./backend:/srv/app
             - ./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini
-        env_file:
-          - ./.env
+
+        environment:
+            XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_host=172.17.0.1}
+            PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-serverName=localhost}
+            APP_URL: ${APP_URL:-http://nginx}
         depends_on:
             - postgres
         links:
