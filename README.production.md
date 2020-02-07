@@ -51,7 +51,10 @@ function finish {
 trap finish EXIT
 
 docker-compose -f docker-compose.test.yml up -d
-docker-compose -f docker-compose.test.yml exec php bin/phing test
+until docker-compose -f docker-compose.test.yml exec php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
+    sleep 1
+done
+docker-compose -f docker-compose.test.yml run php bin/phing test
 
 ```
 
@@ -68,6 +71,11 @@ docker-compose  -f docker-compose.deploy.yml  push
 run your docker images in production mode
 
 Set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
+
+### Pull images
+```bash
+docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml pull
+```
 
 And run with 
 
