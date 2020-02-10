@@ -58,7 +58,7 @@ docker-compose -f docker-compose.test.yml run php bin/phing test
 
 ```
 
-# Deploy
+# Deploy 
  Deploy your docker images with production target
 
 ```bash
@@ -93,3 +93,14 @@ And if you need special volumes configuration for postgres the you can edit `doc
 ```bash
 docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml -f docker-compose.postgres-volumes.yml up -d
 ```
+
+
+### run your images in swarm mode
+
+set you enviormenet variabls
+
+
+docker network create 
+ docker network create --opt encrypted --driver overlay  --attachable ergonode-demo
+ 
+docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode-demo

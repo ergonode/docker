@@ -1,5 +1,5 @@
 # example docker-compose for push/build for production release
-# this file only require  CONTAINER_REGISTRY_BASE and optional IMAGE_TAG environment variable.
+  # this file only require  CONTAINER_REGISTRY_BASE and optional IMAGE_TAG environment variable.
 version: "3.7"
 services:
   php:

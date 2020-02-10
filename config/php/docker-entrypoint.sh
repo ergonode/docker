@@ -104,6 +104,9 @@ if [ "$1" = 'php-fpm' ] ; then
     if [ "$APP_ENV" != 'prod' ]; then
         echo -e "\e[30;48;5;82mergonode  api is available at http://localhost:${EXPOSED_NGINX_PORT} \e[0m"
     fi
+
+    >&2 echo "app initialization finished"
 fi
+
 
 exec docker-php-entrypoint "$@"

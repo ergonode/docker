@@ -1,0 +1,30 @@
+version: "3.7"
+services:
+  aaaaaaa:
+    image: busybox
+    command: ping bbbbbbbbb
+    networks:
+      test:
+        aliases:
+          - "aaaaaaa"
+          - test
+  bbbbbbbbb:
+    image: busybox
+    command: ping aaaaaaa
+    networks:
+      test:
+        aliases:
+          - "bbbbbbbbb"
+          - okokok
+networks:
+  test:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/16
+    driver: overlay
+    attachable: true
+#  b:
+#    name: b
+#    driver: overlay
+#    attachable: true
