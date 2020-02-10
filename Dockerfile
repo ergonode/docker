@@ -106,6 +106,7 @@ COPY backend/public public/
 COPY backend/src src/
 COPY backend/templates templates/
 COPY backend/translations translations/
+COPY backend/tests/ tests/
 
 RUN set -eux; \
 	mkdir -p config/jwt var/cache var/log import public/multimedia; \
@@ -144,13 +145,14 @@ FROM nginx as nginx_development
 ADD ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
 ADD ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 
-CMD /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+ADD ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT /usr/local/bin/docker-entrypoint.sh
 
 FROM nginx_development as nginx_production
 
 ADD ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
-
-CMD /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-production.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
 
 COPY --from=php_production /srv/app /srv/app
 

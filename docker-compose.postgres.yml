@@ -18,8 +18,8 @@ services:
       APP_USER_PASSWORD: ${APP_USER_PASSWORD:?Missing mandatory value for $APP_USER_PASSWORD}
       APP_DB: ${APP_DB:-ergonode}
     networks:
-      - ergonode-demo
+      ergonode:
 volumes:
   postgres-data:
 networks:
-  ergonode-demo:
+  ergonode:

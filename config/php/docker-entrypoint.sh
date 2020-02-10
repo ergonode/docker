@@ -69,6 +69,9 @@ if [ "$1" = 'php-fpm' ] || [[ "$1" =~ (vendor/)?bin/.* ]] || [ "$1" = 'composer'
 	fi
 	echo "Linking ${PHP_INI_RECOMMENDED} > ${PHP_INI_DIR}/php.ini"
 	ln -sf "$PHP_INI_RECOMMENDED" "$PHP_INI_DIR/php.ini"
+
+    disableXdebug
+    genereJwtKeysIfInvalid "${JWT_PRIVATE_KEY_PATH}" "${JWT_PUBLIC_KEY_PATH}" env:JWT_PASSPHRASE
 fi
 
 if [ "$1" = 'php-fpm' ] ; then
@@ -81,14 +84,8 @@ if [ "$1" = 'php-fpm' ] ; then
 
 
 
-    if [ "$APP_ENV" == 'prod' ]; then
-      genereJwtKeysIfInvalid "${JWT_PRIVATE_KEY_PATH}" "${JWT_PUBLIC_KEY_PATH}" env:JWT_PASSPHRASE
-    fi
-
     if [ "$APP_ENV" != 'prod' ]; then
-      disableXdebug
-      composer install --prefer-dist --no-progress --no-suggest --no-interaction
-      genereJwtKeysIfInvalid "config/jwt/private.pem" "config/jwt/public.pem" pass:1234
+        composer install --prefer-dist --no-progress --no-suggest --no-interaction
     fi
 
     >&2 echo "Waiting for db to be ready..."

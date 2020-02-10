@@ -37,7 +37,7 @@ export IMAGE_TAG=latest
 
 build with command
 ```bash
-docker-compose build
+docker-compose  -f docker-compose.deploy.yml  build
 ```
 
 test your image
@@ -51,7 +51,7 @@ function finish {
 trap finish EXIT
 
 docker-compose -f docker-compose.test.yml up -d
-until docker-compose -f docker-compose.test.yml exec php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
+until docker-compose -f docker-compose.test.yml run php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
     sleep 1
 done
 docker-compose -f docker-compose.test.yml run php bin/phing test

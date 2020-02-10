@@ -37,6 +37,9 @@ services:
             XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_host=172.17.0.1}
             PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-serverName=localhost}
             APP_URL: ${APP_URL:-http://nginx}
+            JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
+            JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
+            JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
         depends_on:
             - postgres
         links:
