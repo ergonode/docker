@@ -2,7 +2,7 @@
 
 set -e
 if [[ -z "${APP_TEST_DB}" ]] ; then
-  exit 1
+  exit 0
 fi
 
 psql -v ON_ERROR_STOP=1 \
