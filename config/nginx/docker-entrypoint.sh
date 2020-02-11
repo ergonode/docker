@@ -13,6 +13,13 @@ if [ "$1" = 'nginx' ] ; then
      until ping -c 1 ${PHP_UPSTREAM_HOST} > /dev/null 2>&1; do
       sleep 1
 	   done
+
+	   >&2 echo "Waiting for node host to be ready..."
+	   until ping -c 1 node > /dev/null 2>&1; do
+	     sleep 1
+     done
+
+     >&2 echo "nginx initialization finished"
 fi
 
 exec "$@"

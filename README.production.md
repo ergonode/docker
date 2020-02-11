@@ -37,7 +37,7 @@ export IMAGE_TAG=latest
 
 build with command
 ```bash
-docker-compose  -f docker-compose.deploy.yml  build
+docker-compose  -f docker-compose.deploy.yml  build --parallel
 ```
 
 test your image

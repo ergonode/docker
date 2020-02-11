@@ -122,7 +122,8 @@ FROM php_development as php_production
 #clean up
 # do not use .env /  test files in production
 RUN composer dump-env prod; \
-	rm -f .env* \
+	rm -f .env \
+     .env.test \
      *.dist \
      *.md \
      .travis.yml  \
@@ -131,12 +132,11 @@ RUN composer dump-env prod; \
 
 RUN pecl uninstall xdebug && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-#RUN echo '<?php return [];' > /srv/app/.env.local.php
-
 FROM nginx:1.17 AS nginx
 
 RUN apt-get update && apt-get install -y \
-    curl iputils-ping
+    curl iputils-ping \
+    && apt-get clean
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost/api/doc || exit 1
 
@@ -145,10 +145,10 @@ FROM nginx as nginx_development
 ADD ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
 ADD ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 
-ADD ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ADD ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN chmod +x /usr/local/bin/docker-entrypoint
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["docker-entrypoint"]
 
 CMD ["nginx", "-g", "daemon off;"]
 
@@ -156,7 +156,7 @@ FROM nginx_development as nginx_production
 
 ADD ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
 
-COPY --from=php_production /srv/app /srv/app
+COPY --from=php_production /srv/app/public /srv/app
 
 FROM node:12.6 as node
 
