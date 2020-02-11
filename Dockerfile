@@ -156,7 +156,7 @@ FROM nginx_development as nginx_production
 
 ADD ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
 
-COPY --from=php_production /srv/app/public /srv/app
+COPY --from=php_production /srv/app/public /srv/app/public
 
 FROM node:12.6 as node
 
