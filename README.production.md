@@ -46,7 +46,7 @@ test your image
 ```bash
 
 function finish {
-  docker-compose  rm --force --stop
+    docker-compose -f docker-compose.test.yml rm --stop --force
 }
 trap finish EXIT
 
@@ -62,7 +62,6 @@ docker-compose -f docker-compose.test.yml run php bin/phing test
  Deploy your docker images with production target
 
 ```bash
-docker-compose  -f docker-compose.deploy.yml  build
 docker login your-registry-url
 docker-compose  -f docker-compose.deploy.yml  push
 ```
@@ -71,6 +70,7 @@ docker-compose  -f docker-compose.deploy.yml  push
 run your docker images in production mode
 
 Set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
+You can use for this the `.env` file.
 
 ### Pull images
 ```bash
@@ -88,19 +88,10 @@ Or with optionally with postgres provided by this app.
 docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml up -d
 ```
 
-And if you need special volumes configuration for postgres the you can edit `docker-compose.postgres-volumes.yml` And Start your app with command.
-
-```bash
-docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml -f docker-compose.postgres-volumes.yml up -d
-```
-
-
 ### run your images in swarm mode
 
-set you enviormenet variabls
+Set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
+You can use for this the `.env` file.
 
 
-docker network create 
- docker network create --opt encrypted --driver overlay  --attachable ergonode-demo
- 
-docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode-demo
+docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode

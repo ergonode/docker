@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -e
 
 if [ "$1" = 'nginx' ] ; then
 
@@ -10,10 +11,8 @@ if [ "$1" = 'nginx' ] ; then
 
      >&2 echo "Waiting for php host to be ready..."
      until ping -c 1 ${PHP_UPSTREAM_HOST} > /dev/null 2>&1; do
-        sleep 1
-	 done
-
+      sleep 1
+	   done
 fi
-
 
 exec "$@"

@@ -106,7 +106,6 @@ COPY backend/public public/
 COPY backend/src src/
 COPY backend/templates templates/
 COPY backend/translations translations/
-COPY backend/tests/ tests/
 
 RUN set -eux; \
 	mkdir -p config/jwt var/cache var/log import public/multimedia; \
@@ -122,7 +121,8 @@ FROM php_development as php_production
 
 #clean up
 # do not use .env /  test files in production
-RUN rm -f .env* \
+RUN composer dump-env prod; \
+	rm -f .env* \
      *.dist \
      *.md \
      .travis.yml  \
@@ -131,12 +131,12 @@ RUN rm -f .env* \
 
 RUN pecl uninstall xdebug && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-RUN echo '<?php return [];' > /srv/app/.env.local.php
+#RUN echo '<?php return [];' > /srv/app/.env.local.php
 
 FROM nginx:1.17 AS nginx
 
 RUN apt-get update && apt-get install -y \
-    curl
+    curl iputils-ping
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost/api/doc || exit 1
 
@@ -148,7 +148,9 @@ ADD ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 ADD ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-ENTRYPOINT /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+CMD ["nginx", "-g", "daemon off;"]
 
 FROM nginx_development as nginx_production
 
