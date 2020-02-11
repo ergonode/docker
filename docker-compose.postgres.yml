@@ -6,6 +6,7 @@ services:
       target: postgres_production
       cache_from:
         - ${CONTAINER_REGISTRY_BASE}/postgres:latest
+      dockerfile: Dockerfile-postgres
     image: ${CONTAINER_REGISTRY_BASE}/postgres${IMAGE_TAG:-:latest}
     volumes:
       - "ergonode-postgres-data:/var/lib/postgresql/data"

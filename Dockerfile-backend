@@ -1,19 +1,9 @@
-# the different stages of this Dockerfile are meant to be built into separate images
+# the different stages of this Dockerfile-backend are meant to be built into separate images
 # https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
 # https://docs.docker.com/compose/compose-file/#target
 # https://docs.docker.com/compose/environment-variables/
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-
-FROM postgres:10-alpine as postgres_development
-
-COPY ./config/postgres/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
-ADD ./config/postgres/postgres-healthcheck.sh  /usr/local/bin/postgres-healthcheck.sh
-RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
-
-HEALTHCHECK --start-period=5s CMD bash -c /usr/local/bin/postgres-healthcheck.sh
-
-FROM postgres_development as postgres_production
 
 FROM php:7.4-fpm as php
 
@@ -157,40 +147,3 @@ FROM nginx_development as nginx_production
 ADD ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
 
 COPY --from=php_production /srv/app/public /srv/app/public
-
-FROM node:12.6 as node
-
-COPY config/node/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-RUN chmod +x /usr/local/bin/docker-entrypoint
-
-ENV HOST=0.0.0.0
-ENV PORT=80
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost || exit 1
-
-ENTRYPOINT ["docker-entrypoint"]
-CMD ["npm", "run", "dev"]
-
-FROM node as node_development
-
-WORKDIR /srv/app
-
-COPY frontend /srv/app/
-RUN npm install
-
-FROM node_development as node_production
-WORKDIR /srv/app
-#clean up
-# do not use .env /  test files in production
-RUN rm -f .env*
-
-CMD ["npm", "run", "start"]
-
-FROM node as docs
-RUN npm install docsify-cli -g
-
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost:3000 || exit 1
-
-CMD ["docsify", "serve" ,"docs"]
-
-FROM docs as docs_final
-

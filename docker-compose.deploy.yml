@@ -8,6 +8,7 @@ services:
       target: php_production
       cache_from:
         - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:latest
+      dockerfile: Dockerfile-backend
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
   node:
     build:
@@ -15,6 +16,7 @@ services:
       target: node_production
       cache_from:
         - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:latest
+      dockerfile: Dockerfile-node
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
   nginx:
     build:
@@ -22,6 +24,7 @@ services:
       target: nginx_production
       cache_from:
         - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:latest
+      dockerfile: Dockerfile-backend
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
   postgres:
     build:
@@ -29,4 +32,5 @@ services:
       target: postgres_production
       cache_from:
         - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:latest
+      dockerfile: Dockerfile-postgres
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}

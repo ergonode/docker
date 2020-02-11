@@ -7,6 +7,7 @@ services:
           target: postgres_development
           cache_from:
               - ${CONTAINER_REGISTRY_BASE:-ergonode}/postgres:latest
+          dockerfile: Dockerfile-postgres
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/postgres:${IMAGE_TAG:-latest}
         volumes:
             - "./data/.postgres:/var/lib/postgresql/data"
@@ -27,6 +28,7 @@ services:
             target: php_development
             cache_from:
                 - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
+            dockerfile: Dockerfile-backend
         working_dir: /srv/app
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
@@ -51,6 +53,7 @@ services:
             target: nginx_development
             cache_from:
                 - ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:latest
+            dockerfile: Dockerfile-backend
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:${IMAGE_TAG:-latest}
         volumes:
             - ./backend:/srv/app
@@ -72,6 +75,7 @@ services:
             target: node_development
             cache_from:
                 - ${CONTAINER_REGISTRY_BASE:-ergonode}/node:latest
+            dockerfile: Dockerfile-node
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/node:${IMAGE_TAG:-latest}
         working_dir: /srv/app
         volumes:
@@ -88,6 +92,7 @@ services:
             target: docs_final
             cache_from:
                 - ${CONTAINER_REGISTRY_BASE:-ergonode}/docs:latest
+            dockerfile: Dockerfile-node
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/docs:${IMAGE_TAG:-latest}
         working_dir: /srv/app
         volumes:
