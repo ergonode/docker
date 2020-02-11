@@ -61,7 +61,7 @@ services:
             PHP_UPSTREAM_HOST: php
             DOLLAR: "$$"
         ports:
-            - "${EXPOSED_NGINX_PORT:-8080}:80"
+            - "${EXPOSED_NGINX_PORT:-8000}:80"
         depends_on:
             - php
         command: /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
