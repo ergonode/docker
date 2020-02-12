@@ -15,16 +15,15 @@ RUN apt-get -y update \
         nano \
         zip \
         unzip \
+        librabbitmq4 \
         librabbitmq-dev \
+        libpq5 \
         libpq-dev \
         libicu-dev \
         graphviz \
         acl \
         libfcgi-bin \
-    && apt-get clean \
     && pecl install amqp-1.9.4
-
-ADD ./config/php/override.ini /usr/local/etc/php/conf.d/override.ini
 
 # PHP extensionns
 RUN docker-php-ext-install -j$(nproc) \
@@ -34,16 +33,6 @@ RUN docker-php-ext-install -j$(nproc) \
     pcntl \
     && docker-php-ext-enable amqp \
     && docker-php-ext-enable opcache
-
-# Composer
-ENV COMPOSER_ALLOW_SUPERUSER=1
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer --ansi --version --no-interaction
-
-# install Symfony Flex globally to speed up download of Composer packages (parallelized prefetching)
-RUN set -eux; \
-	composer global require "symfony/flex" --prefer-dist --no-progress --no-suggest --classmap-authoritative; \
-	composer clear-cache
 
 COPY config/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
@@ -55,19 +44,27 @@ RUN chmod 755 /usr/local/bin/php-fpm-healthcheck
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD php-fpm-healthcheck
 
+ADD ./config/php/override.ini /usr/local/etc/php/conf.d/override.ini
 
-RUN rm -rf /tmp/*
+# Composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer --ansi --version --no-interaction
+
+# install Symfony Flex globally to speed up download of Composer packages (parallelized prefetching)
+RUN set -eux; \
+	composer global require "symfony/flex" --prefer-dist --no-progress --no-suggest --classmap-authoritative; \
+	composer clear-cache
 
 ENTRYPOINT ["docker-entrypoint"]
-
 CMD ["php-fpm"]
 
 FROM php as php_development
 
-RUN pecl install xdebug && docker-php-ext-enable xdebug
-RUN echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-RUN echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+    && echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR /srv/app
 
@@ -105,6 +102,8 @@ RUN set -eux; \
 
 RUN bin/console cache:clear --env=prod --no-debug
 
+RUN rm -rf /tmp/*  && apt-get clean
+
 FROM php_development as php_final_with_xdebug
 
 FROM php_development as php_production
@@ -122,13 +121,14 @@ RUN composer dump-env prod; \
 
 RUN pecl uninstall xdebug && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
+# remove unnecessary dev packages
+RUN apt-get purge -y "*-dev" && apt-get autoremove -y && apt-get clean
+
 FROM nginx:1.17 AS nginx
 
 RUN apt-get update && apt-get install -y \
     curl iputils-ping \
     && apt-get clean
-
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost/api/doc || exit 1
 
 FROM nginx as nginx_development
 
@@ -137,6 +137,8 @@ ADD ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 
 ADD ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost/api/doc || exit 1
 
 ENTRYPOINT ["docker-entrypoint"]
 

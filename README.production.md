@@ -93,5 +93,6 @@ docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml 
 Set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
 You can use for this the `.env` file.
 
-
+```
 docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
+```

@@ -56,6 +56,18 @@ function genereJwtKeysIfInvalid() {
   fixPermissionForJwtKeys "${privatePath}" "${publicPath}"
 }
 
+function waitUntil() {
+  local counter=0
+  until "$@"  > /dev/null 2>&1  || [ $counter -gt 15 ] ; do
+    ((counter++))
+    sleep 1
+  done
+
+  if ! "@"  > /dev/null 2>&1 ; then
+      "$@"
+  fi
+}
+
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
 	set -- php-fpm "$@"
@@ -89,14 +101,15 @@ if [ "$1" = 'php-fpm' ] ; then
     fi
 
     >&2 echo "Waiting for db to be ready..."
-    until bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
-      sleep 1
-	  done
+    counter=0
+    waitUntil bin/console doctrine:query:sql "SELECT 1"
 
     if [ "$APP_ENV" != 'prod' ]; then
       bin/phing build
       enableXdebug
     fi
+
+    bin/console ergonode:migrations:migrate --no-interaction --allow-no-migration
 
     if [ "$APP_ENV" != 'prod' ]; then
         echo -e "\e[30;48;5;82mergonode  api is available at http://localhost:${EXPOSED_NGINX_PORT} \e[0m"
@@ -104,6 +117,5 @@ if [ "$1" = 'php-fpm' ] ; then
 
     >&2 echo "app initialization finished"
 fi
-
 
 exec docker-php-entrypoint "$@"

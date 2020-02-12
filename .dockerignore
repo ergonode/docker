@@ -2,7 +2,12 @@
 ./backend/.git
 ./fronted/.git
 ./frontend/node_modules/
+./frontend/.nuxt
+./frontend/.env
 ./backend/config/jwt/
 ./backend/var/
 ./backend/vendor/
 ./backend/build/
+./backend/bin/*
+!./backend/bin/.gitignore
+!./backend/bin/console

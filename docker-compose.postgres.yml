@@ -24,3 +24,4 @@ volumes:
   ergonode-postgres-data:
 networks:
   ergonode:
+    attachable: true
