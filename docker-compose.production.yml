@@ -17,6 +17,8 @@ services:
       APP_HOST: ${APP_HOST:?Missing mandatory value for $APP_HOST}
       APP_SCHEME: ${APP_SCHEME:-https}
       APP_URL: ${APP_URL:?Missing mandatory value for $APP_URL}
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES}
     volumes:
       - "ergonode-multimedia:/srv/app/public/mutimedia"
       - "ergonode-import:/srv/app/import"
