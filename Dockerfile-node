@@ -10,7 +10,7 @@ FROM node as node_development
 
 WORKDIR /srv/app
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost || exit 1
+HEALTHCHECK --start-period=90s CMD curl --fail http://localhost || exit 1
 
 ENV HOST=0.0.0.0
 ENV PORT=80
@@ -31,7 +31,7 @@ CMD ["npm", "run", "start"]
 FROM node as docs
 RUN npm install docsify-cli -g
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost:3000 || exit 1
+HEALTHCHECK --start-period=90s CMD curl --fail http://localhost:3000 || exit 1
 
 CMD ["docsify", "serve" ,"docs"]
 
