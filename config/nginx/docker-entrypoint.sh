@@ -3,15 +3,9 @@
 set -e
 
 function waitUntil() {
-  local counter=0
-  until "$@"  > /dev/null 2>&1  || [ $counter -gt 15 ] ; do
-    ((counter++))
+  until "$@"  > /dev/null 2>&1 ; do
     sleep 1
   done
-
-  if ! "@"  > /dev/null 2>&1 ; then
-      "$@"
-  fi
 }
 
 if [ "$1" = 'nginx' ] ; then
