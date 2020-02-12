@@ -3,96 +3,118 @@
 
 ## Build
  
-You Must copy your backend and frontend app to docker directory.
+1. You Must copy or clone your backend and frontend  app to the docker directory.
 
-### directory structure
+2. Directory structure
 
-```        
-docker/
-├── frontend
-├── backend
-```
+   ```        
+   docker/
+   ├── frontend
+   ├── backend
+   ```
+
+3. Set your **build** environment variables. You can use for this the .env file.
+
+   ```bash
+   COMPOSE_PROJECT_NAME=your-app-name
+   CONTAINER_REGISTRY_BASE=your-registry-url/your-app-name
+   ```
+
+   And optionally your IMAGE tag,  by default this is already set to latest. 
+
+   ```bash
+   IMAGE_TAG=latest
+   ```
+4. Build with command
+   ```bash
+   docker-compose  -f docker-compose.deploy.yml  build --parallel
+   ```
+
+## Test you images
+
+1. For testing your backend code must have must have correctly configured test tools.
+If you have correctly set up your testing tools you can execute the commands: 
 
 
-Next, you will need to set required environment vars and list of this vars you can find in used docker-compose files. 
+   ```bash
+   #!/bin/bash
+   function finish {
+     docker-compose -f docker-compose.test.yml rm --stop --force
+   }
+   trap finish EXIT
+   docker-compose -f docker-compose.test.yml up -d
+   until docker-compose -f docker-compose.test.yml run php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
+     sleep 1
+   done
+   
+   docker-compose -f docker-compose.test.yml run php bin/phing test
+   ```
 
-# 
+2. To test your images on local machine you can use command
+ 
+   ```
+   docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml up -d
+   ```
+3. And test your app on port 80 (by default this is set in environment variable $EXPOSED_NGINX_PORT) at http://localhost
 
-## Environment variables
+# Push images to registry
 
-Set your **build** environment variables
+1. To push your images to your registry you need execute commands. 
 
-```bash
-export COMPOSE_PROJECT_NAME=your-app-name
-export CONTAINER_REGISTRY_BASE=your-registry-url/your-app-name
-```
-
-And optionally your IMAGE tag,  by default this is already set to latest. 
-
-```bash
-export IMAGE_TAG=latest
-```
-
-## Build
-
-build with command
-```bash
-docker-compose  -f docker-compose.deploy.yml  build --parallel
-```
-
-test your image
-
-# Test you images
-```bash
-
-function finish {
-    docker-compose -f docker-compose.test.yml rm --stop --force
-}
-trap finish EXIT
-
-docker-compose -f docker-compose.test.yml up -d
-until docker-compose -f docker-compose.test.yml run php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
-    sleep 1
-done
-docker-compose -f docker-compose.test.yml run php bin/phing test
-
-```
-
-# Deploy 
- Deploy your docker images with production target
 
 ```bash
 docker login your-registry-url
 docker-compose  -f docker-compose.deploy.yml  push
 ```
 
-# Run  in production
-run your docker images in production mode
+## Deploy the stack to the swarm
 
-Set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
-You can use for this the `.env` file.
 
-### Pull images
-```bash
-docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml pull
-```
+1. You need login to your swarm server by ssh and following command execute on your docker swarm server.  
 
-And run with 
+2. You need set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
+And you can use for this the `.env` file.
 
-```bash
-docker-compose -f docker-compose.production.yml  up -d
-```
-Or with optionally with postgres provided by this app.
+3. Login to your registry
 
-```bash
-docker-compose -f docker-compose.production.yml  -f docker-compose.postgres.yml up -d
-```
+    ```bash
+    docker login your-registry-url
+    ```
+4. Create the your stack with `docker stack deploy:`
+   ```
+    $ docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
+    Ignoring unsupported options: build, restart
+   
+    Creating network ergonode_ergonode
+    Creating service ergonode_node
+    Creating service ergonode_php
+    Creating service ergonode_postgres
+    Creating service ergonode_nginx
+   ```
 
-### run your images in swarm mode
-
-Set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
-You can use for this the `.env` file.
-
-```
-docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
-```
+    If  You have managed PostgreSQL by your provider you can skip option `--compose-file docker-compose.postgres.yml`
+      
+5. Check that it’s running with `docker stack services ergonode`:  
+   ```bash
+   $ docker stack services ergonode
+   ID                  NAME                MODE                REPLICAS            IMAGE                                            PORTS
+   4uwzc0p9hetl        ergonode_nginx      replicated          1/1                 harbor.strix.app/ergonode-demo/nginx:latest      *:80->80/tcp
+   q1me75mm90pw        ergonode_node       replicated          1/1                 harbor.strix.app/ergonode-demo/node:latest       
+   rlgcj8dyj54z        ergonode_postgres   replicated          1/1                 harbor.strix.app/ergonode-demo/postgres:latest   
+   s4hlonu65i8g        ergonode_php        replicated          1/1                 harbor.strix.app/ergonode-demo/php:latest
+   ```
+   This might take some time if you have a multi-node swarm, as images need to be pulled.
+   It may take some time if you have a multi-node, because the images have need to be pulled by swarm nodes.
+   
+   And you can test your application on port 80 (by default this is set in environment variable $EXPOSED_NGINX_PORT) at http://your-swarm-node-ip.
+   
+6. If you want to bring down your stack then you can execute `docker stack rm:`
+   ```bash
+   $ docker stack rm ergonode 
+   
+   Removing service ergonode_nginx
+   Removing service ergonode_node
+   Removing service ergonode_php
+   Removing service ergonode_postgres
+   Removing network ergonode_ergonode
+  ```     
