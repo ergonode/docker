@@ -73,13 +73,29 @@ docker-compose  -f docker-compose.deploy.yml  push
 1. You need login to your swarm server by ssh and following command execute on your docker swarm server.  
 
 2. You need set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
-And you can use for this the `.env` file.
 
-3. Login to your registry
+3. For environmental variables, you can create a file `.env` that must be executable by your shell.
+
+4. Example `.env` file:
+
+   ```bash
+     export COMPOSE_PROJECT_NAME=your-app-name
+     export CONTAINER_REGISTRY_BASE=your-registry-url/your-app-name
+
+     ...
+   ```
+
+5. Execute you `.env` file with command:
+
+   ```bash
+   $ . .env
+   ```
+6. Login to your registry (if your registry require this for pulling docker images)
 
     ```bash
     docker login your-registry-url
     ```
+   
 4. Create the your stack with `docker stack deploy:`
    ```
     $ docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode

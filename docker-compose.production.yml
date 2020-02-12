@@ -3,20 +3,20 @@
 version: "3.7"
 services:
   php:
-    image: ${CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
     restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}
-      APP_SECRET: ${APP_SECRET:?Missing mandatory value for $APP_SECRET}
-      DATABASE_URL: ${DATABASE_URL:?Missing mandatory value for $DATABASE_URL}
+      APP_SECRET: ${APP_SECRET:?Missing mandatory value for APP_SECRET}
+      DATABASE_URL: ${DATABASE_URL:?Missing mandatory value for DATABASE_URL}
       JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
       JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
-      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?Missing mandatory value for $JWT_PASSPHRASE}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?Missing mandatory value for JWT_PASSPHRASE}
       JWT_TOKEN_TTL: ${JWT_TOKEN_TTL:-3600}
-      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?Missing mandatory value for $CORS_ALLOW_ORIGIN}
-      APP_HOST: ${APP_HOST:?Missing mandatory value for $APP_HOST}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?Missing mandatory value for CORS_ALLOW_ORIGIN}
+      APP_HOST: ${APP_HOST:?Missing mandatory value for APP_HOST}
       APP_SCHEME: ${APP_SCHEME:-https}
-      APP_URL: ${APP_URL:?Missing mandatory value for $APP_URL}
+      APP_URL: ${APP_URL:?Missing mandatory value for APP_URL}
       TRUSTED_HOSTS: ${TRUSTED_HOSTS}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES}
     volumes:
@@ -26,17 +26,17 @@ services:
     networks:
       ergonode:
   node:
-    image: ${CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
     restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}
       API_PROTOCOL: ${API_PROTOCOL:-https}
-      API_HOST: ${API_HOST:?Missing mandatory value for $API_HOST}
+      API_HOST: ${API_HOST:?Missing mandatory value for API_HOST}
       API_PREFIX: ${API_PREFIX:-/api/v1/}
     networks:
       ergonode:
   nginx:
-    image: ${CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
     restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}

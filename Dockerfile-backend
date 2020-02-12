@@ -42,7 +42,7 @@ ADD ./config/php/php-fpm.d/zzz-01-healthcheck.conf /usr/local/etc/php-fpm.d/zzz-
 ADD ./config/php/php-fpm-healthcheck.sh /usr/local/bin/php-fpm-healthcheck
 RUN chmod 755 /usr/local/bin/php-fpm-healthcheck
 
-HEALTHCHECK --start-period=120s  CMD php-fpm-healthcheck
+HEALTHCHECK --start-period=5m  CMD php-fpm-healthcheck
 
 ADD ./config/php/override.ini /usr/local/etc/php/conf.d/override.ini
 
@@ -138,7 +138,7 @@ ADD ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 ADD ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
-HEALTHCHECK --start-period=90s CMD curl --fail http://localhost/api/doc || exit 1
+HEALTHCHECK --start-period=5m CMD curl --fail http://localhost/api/doc || exit 1
 
 ENTRYPOINT ["docker-entrypoint"]
 

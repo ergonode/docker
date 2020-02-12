@@ -5,18 +5,18 @@ services:
       context: "./"
       target: postgres_production
       cache_from:
-        - ${CONTAINER_REGISTRY_BASE}/postgres:latest
+        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:latest
       dockerfile: Dockerfile-postgres
-    image: ${CONTAINER_REGISTRY_BASE}/postgres${IMAGE_TAG:-:latest}
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres${IMAGE_TAG:-:latest}
     volumes:
       - "ergonode-postgres-data:/var/lib/postgresql/data"
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing mandatory value for $POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing mandatory value for POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       APP_USER: ${APP_USER:-ergonode}
-      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?Missing mandatory value for $APP_USER_PASSWORD}
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?Missing mandatory value for APP_USER_PASSWORD}
       APP_DB: ${APP_DB:-ergonode}
     networks:
       ergonode:
