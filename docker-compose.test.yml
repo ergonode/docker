@@ -15,6 +15,10 @@ services:
       JWT_PUBLIC_KEY_PATH: config/jwt/public.pem
       JWT_PASSPHRASE: 1234
       APP_URL: http://localhost:8001
+      KERNEL_CLASS: App\Kernel
+      APP_SECRET: Xecretf0rt3st
+      SYMFONY_DEPRECATIONS_HELPER: 999999
+      DATABASE_URL: pgsql://ergonode:123@postgres:5432/ergonode_test?serverVersion=10&charset=utf8
   postgres:
     build:
       context: "./"
