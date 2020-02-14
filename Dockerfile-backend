@@ -112,7 +112,14 @@ FROM php_development as php_production
 # do not use .env  in production
 RUN composer dump-env prod; \
 	rm -f .env \
-     .env.test
+     .env.test \
+     *.dist \
+     *.md \
+     .travis.yml  \
+     depfile.yml \
+     config/jwt/*.pem \
+     tests \
+     features
 
 RUN pecl uninstall xdebug && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 

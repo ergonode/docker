@@ -47,7 +47,7 @@ If you have correctly set up your testing tools you can execute the commands:
      sleep 1
    done
    
-   docker-compose -f docker-compose.test.yml run php bin/phing test
+   docker-compose -f docker-compose.test.yml run php bash -c 'ln -s /srv/app-test/*  /srv/app; bin/phing test'
    ```
 
 2. To test your images on local machine you can use command
