@@ -6,3 +6,4 @@ This document captures breaking changes between versions.
 
 * Move frontend, backend, docs directories to the docker directory (main directory of this project).
 
+
