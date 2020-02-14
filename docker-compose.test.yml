@@ -16,19 +16,8 @@ services:
       JWT_PASSPHRASE: 1234
       APP_URL: http://localhost:8001
     volumes:
-      - "./backend/composer.json:/srv/app-test/composer.json:ro"
-      - "./backend/composer.lock:/srv/app-test/composer.lock:ro"
-      - "./backend/symfony.lock:/srv/app-test/symfony.lock:ro"
-      - "./backend/.env:/srv/app-test/.env:ro"
-      - "./backend/.env.test:/srv/app-test/.env.test:ro"
-      - "./backend/phpunit.xml.dist:/srv/app-test/phpunit.xml.dist:ro"
-      - "./backend/phpstan.neon.dist:/srv/app-test/phpstan.neon.dist:ro"
-      - "./backend/phpcs.xml.dist:/srv/app-test/phpcs.xml.dist:ro"
-      - "./backend/behat.yml.dist:/srv/app-test/behat.yml.dist:ro"
-      - "./backend/depfile.yml:/srv/app-test/depfile.yml:ro"
-      - "./backend/.travis.yml:/srv/app-test/.travis.yml:ro"
-      - "./backend/build.xml:/srv/app-test/build.xml:ro"
-      - "./backend/tests:/srv/test/tests:ro"
+      - "./backend:/srv/app-test:ro"
+      - "./backend/tests:/srv/app/tests:ro"
       - "./backend/features:/srv/app/features:ro"
   postgres:
     build:

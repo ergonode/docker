@@ -43,11 +43,11 @@ If you have correctly set up your testing tools you can execute the commands:
    }
    trap finish EXIT
    docker-compose -f docker-compose.test.yml up -d
-   until docker-compose -f docker-compose.test.yml run php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
+   until docker-compose -f docker-compose.test.yml run --rm php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
      sleep 1
    done
    
-   docker-compose -f docker-compose.test.yml run php bash -c 'ln -s /srv/app-test/*  /srv/app; bin/phing test'
+    docker-compose -f docker-compose.test.yml run --rm php bash -c 'ln -s /srv/app-test/*  /srv/app; bin/phing test'
    ```
 
 2. To test your images on local machine you can use command
