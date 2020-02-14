@@ -117,7 +117,9 @@ RUN composer dump-env prod; \
      *.md \
      .travis.yml  \
      depfile.yml \
-     config/jwt/*.pem
+     config/jwt/*.pem \
+     tests \
+     features
 
 RUN pecl uninstall xdebug && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
