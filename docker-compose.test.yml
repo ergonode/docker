@@ -15,15 +15,6 @@ services:
       JWT_PUBLIC_KEY_PATH: config/jwt/public.pem
       JWT_PASSPHRASE: 1234
       APP_URL: http://localhost:8001
-    volumes:
-      - "./backend/.env:/srv/app/.env:ro"
-      - "./backend/.env.test:/srv/app/.env.test:ro"
-      - "./backend/phpunit.xml.dist:/srv/app/phpunit.xml.dist:ro"
-      - "./backend/phpstan.neon.dist:/srv/app/phpstan.neon.dist:ro"
-      - "./backend/phpcs.xml.dist:/srv/app/phpcs.xml.dist:ro"
-      - "./backend/behat.yml.dist:/srv/app/behat.yml.dist:ro"
-      - "./backend/tests:/srv/app/tests:ro"
-      - "./backend/features:/srv/app/features:ro"
   postgres:
     build:
       context: "./"

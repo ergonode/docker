@@ -109,17 +109,10 @@ FROM php_development as php_final_with_xdebug
 FROM php_development as php_production
 
 #clean up
-# do not use .env /  test files in production
+# do not use .env  in production
 RUN composer dump-env prod; \
 	rm -f .env \
-     .env.test \
-     *.dist \
-     *.md \
-     .travis.yml  \
-     depfile.yml \
-     config/jwt/*.pem \
-     tests \
-     features
+     .env.test
 
 RUN pecl uninstall xdebug && rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
