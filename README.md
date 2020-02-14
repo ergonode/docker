@@ -126,3 +126,4 @@ A: No problem. Just send me an email to daniel.marynicz@strix.net and attach a b
 Q: This is bullshit, how can i thank you for this crap?
 A: No problem. Just send me an email to daniel.marynicz@strix.net but don't forget attach a beer
 ```
+
