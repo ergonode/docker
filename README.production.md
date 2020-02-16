@@ -98,7 +98,7 @@ docker-compose  -f docker-compose.deploy.yml  push
    
 4. Create the your stack with `docker stack deploy:`
    ```
-    $ docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
+    $ env $(cat .env | grep ^[a-zA-Z] | xargs) docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
     Ignoring unsupported options: build, restart
    
     Creating network ergonode_ergonode

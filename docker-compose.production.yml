@@ -33,6 +33,7 @@ services:
       API_PROTOCOL: ${API_PROTOCOL:-https}
       API_HOST: ${API_HOST:?Missing mandatory value for API_HOST}
       API_PREFIX: ${API_PREFIX:-/api/v1/}
+      API_PORT: ${API_PORT}
     networks:
       ergonode:
   nginx:
