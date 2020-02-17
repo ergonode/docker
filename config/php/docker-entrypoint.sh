@@ -95,7 +95,6 @@ if [ "$1" = 'php-fpm' ] ; then
     fi
 
     >&2 echo "Waiting for db to be ready..."
-    counter=0
     waitUntil bin/console doctrine:query:sql "SELECT 1"
 
     if [ "$APP_ENV" != 'prod' ]; then
