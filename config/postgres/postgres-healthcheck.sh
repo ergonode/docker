@@ -1,10 +1,14 @@
-##!/usr/bin/env bash
+#!/usr/bin/env bash
 
-host="$(hostname -i || echo '127.0.0.1')"
+set -eo pipefail
 
-su -s /bin/sh  postgres  -c psql \
+. /usr/local/bin/ergonode-common-functions.sh
+
+export PGPASSWORD="${password}"
+
+psql \
     --host="$host" \
-    --username="$POSTGRES_USER" \
-    --dbname="$POSTGRES_DB" \
+    --username="$user" \
+    --dbname="$db" \
     --quiet --no-align --tuples-only \
     --command "SELECT 1"

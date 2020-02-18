@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
-set -e
-if [[ -z "${APP_TEST_DB}" ]] ; then
+set -eo pipefail
+
+. /usr/local/bin/ergonode-common-functions.sh
+
+if [[ -z "${app_test_db}" ]] ; then
   exit 0
 fi
 
 psql -v ON_ERROR_STOP=1 \
-    --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE ${APP_TEST_DB} OWNER ${APP_USER};
+    --dbname "$db" \
+    --username="$user" <<-EOSQL
+    CREATE DATABASE ${app_test_db} OWNER ${app_user};
 EOSQL

@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-set -e
+set -eo pipefail
+
+. /usr/local/bin/ergonode-common-functions.sh
 
 psql -v ON_ERROR_STOP=1 \
-    --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE ${APP_DB} OWNER ${APP_USER};
+    --dbname "$db" \
+    --username="$user" <<-EOSQL
+    CREATE DATABASE ${app_db} OWNER ${app_user};
 EOSQL

@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 
-set -e
+set -eo pipefail
 
-
-password=${APP_USER_PASSWORD}
-if [ -n "${APP_USER_PASSWORD_FILE}" ] ; then
- password=$(cat "${APP_USER_PASSWORD_FILE}")
-fi
+. /usr/local/bin/ergonode-common-functions.sh
 
 #escape string with double quotes
-password=${password/\'/\'\'}
+app_password=${app_password/\'/\'\'}
 
 
 psql -v ON_ERROR_STOP=1 \
-    --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE ROLE ${APP_USER} LOGIN  PASSWORD '${password}' CREATEDB;
+    --dbname "$db" \
+    --username="$user" <<-EOSQL
+    CREATE ROLE ${app_user} LOGIN  PASSWORD '${app_password}' CREATEDB;
 EOSQL
