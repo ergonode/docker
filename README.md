@@ -25,13 +25,11 @@ git clone git@github.com:ergonode/backend.git
 git clone git@github.com:ergonode/docs.git
 ```
 
-Next, you will need to enter docker directory and copy ``.env.dist``
 
-```bash
-cp .env.dist .env
-```
 
-If you want to test ergonode in multiple directories you need to change in the  `.env` file
+
+
+If you want to test ergonode in multiple directories you need to create the  `.env` file and set
 COMPOSE_PROJECT_NAME env var to some unique value
 
 Now you can start start docker by simple command

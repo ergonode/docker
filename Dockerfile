@@ -5,28 +5,41 @@
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 
-FROM php:7.4-alpine as php
+FROM php:7.4-fpm-alpine as php
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # required packages and PHP extensionns
 RUN set -eux ; \
-    apt-get -y update; \
-    apt-get -y --no-install-recommends install git  \
+    echo icu-dev \
+                 postgresql-dev \
+                 rabbitmq-c-dev \
+                 autoconf \
+                 musl-dev \
+                 gcc \
+                 make > /tmp/dev-packages ; \
+    apk add  --no-cache git  \
         zip \
         unzip \
         curl \
-        librabbitmq4 \
-        librabbitmq-dev \
-        libpq5 \
-        libpq-dev \
-        libicu-dev \
+        rabbitmq-c \
+        libpq \
         graphviz \
         acl \
-        libfcgi-bin ; \
-    apt-get clean ; \
-    rm -rf /var/lib/apt/lists/* ; \
+        fcgi  \
+        bash ; \
+    apk add --no-cache --virtual .fetch-deps \
+        icu-dev \
+        postgresql-dev \
+        rabbitmq-c-dev \
+        autoconf \
+        musl-dev \
+        gcc \
+        g++ \
+        make \
+        pkgconf \
+        file ; \
     docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
@@ -44,7 +57,6 @@ COPY ./config/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY ./config/php/php-fpm.d/zzz-01-healthcheck.conf /usr/local/etc/php-fpm.d/zzz-01-healthcheck.conf
 COPY ./config/php/php-fpm-healthcheck.sh /usr/local/bin/php-fpm-healthcheck
 COPY ./config/php/override.ini /usr/local/etc/php/conf.d/override.ini
-
 
 # install Symfony Flex globally to speed up download of Composer packages (parallelized prefetching) \
 RUN set -eux ; \
@@ -94,19 +106,16 @@ RUN set -eux; \
 	composer dump-env prod; \
     composer run-script post-install-cmd; \
 	bin/console cache:clear --env=prod --no-debug ; \
-	bin/console cache:clear --env=dev ; \
-	rm -rf /tmp/* ; \
-    # remove unnecessary dev packages
-    apt-get purge -y "*-dev" ; \
-    apt-get autoremove -y  ; \
-    php --version ; \
-    sync
+	bin/console cache:clear --env=dev
 
 FROM php as php_production
 	# do not use .env  in production
 RUN set -eux; \
     pecl uninstall xdebug ; \
     rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
+    # remove unnecessary dev packages
+    apk del --no-network .fetch-deps ; \
+    php --version ; \
 	rm -f .env \
      .env.test \
      *.dist \
@@ -115,18 +124,15 @@ RUN set -eux; \
      depfile.yml \
      config/jwt/*.pem \
      tests \
-     features ; \
-     sync
+     features
 
-FROM nginx:1.17 AS nginx
+FROM nginx:1.17-alpine AS nginx
 
 RUN  set -eux; \
-    apt-get -y update ; \
-    apt-get --no-install-recommends install -y \
+    apk add  --no-cache \
     curl \
-    iputils-ping; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* ; \
+    bash \
+    iputils; \
     rm -rf /tmp/*
 
 COPY ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
@@ -147,8 +153,10 @@ FROM node:12.6-alpine as node
 COPY config/node/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN  set -eux; \
     chmod +x /usr/local/bin/docker-entrypoint ; \
-    #We have installed curl?
-    curl --version
+    apk add  --no-cache \
+    curl \
+    bash
+
 
 ENTRYPOINT ["docker-entrypoint"]
 
