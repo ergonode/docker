@@ -5,7 +5,7 @@
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 
-FROM php:7.4-fpm as php_development
+FROM php:7.4-alpine as php
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 COPY --from=composer /usr/bin/composer /usr/bin/composer
@@ -102,7 +102,7 @@ RUN set -eux; \
     php --version ; \
     sync
 
-FROM php_development as php_production
+FROM php as php_production
 	# do not use .env  in production
 RUN set -eux; \
     pecl uninstall xdebug ; \
@@ -118,11 +118,10 @@ RUN set -eux; \
      features ; \
      sync
 
-
 FROM nginx:1.17 AS nginx
 
 RUN  set -eux; \
-    apt-get update ; \
+    apt-get -y update ; \
     apt-get --no-install-recommends install -y \
     curl \
     iputils-ping; \
@@ -130,26 +129,20 @@ RUN  set -eux; \
     rm -rf /var/lib/apt/lists/* ; \
     rm -rf /tmp/*
 
-FROM nginx as nginx_development
-
 COPY ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
+COPY ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
 COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --from=php /srv/app/public /srv/app/public
 
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
 HEALTHCHECK --start-period=5m CMD curl --fail http://localhost/api/doc || exit 1
-ENTRYPOINT ["docker-entrypoint"]
 
+ENTRYPOINT ["docker-entrypoint"]
 CMD ["nginx", "-g", "daemon off;"]
 
-FROM nginx_development as nginx_production
-
-COPY ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
-
-COPY --from=php_production /srv/app/public /srv/app/public
-
-FROM node:12.6 as node
+FROM node:12.6-alpine as node
 
 COPY config/node/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN  set -eux; \
@@ -159,7 +152,7 @@ RUN  set -eux; \
 
 ENTRYPOINT ["docker-entrypoint"]
 
-FROM node as node_development
+FROM node as nuxtjs
 
 WORKDIR /srv/app
 
@@ -167,10 +160,6 @@ HEALTHCHECK --start-period=5m CMD curl --fail http://localhost || exit 1
 
 ENV HOST=0.0.0.0
 ENV PORT=80
-
-CMD ["npm", "run", "dev"]
-
-FROM node_development as node_production
 
 WORKDIR /srv/app
 
@@ -181,12 +170,26 @@ RUN  set -eux; \
     #clean up
     rm -f .env*
 
+CMD ["npm", "run", "dev"]
+
+FROM node as nuxtjs_production
+
 CMD ["npm", "run", "start"]
 
-FROM node as docs_development
+FROM node as docsify
 
 RUN npm install docsify-cli -g
 
 HEALTHCHECK --start-period=5m CMD curl --fail http://localhost:3000 || exit 1
 
 CMD ["docsify", "serve" ,"docs"]
+
+FROM postgres:10-alpine as postgres
+
+COPY ./config/postgres/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
+COPY ./config/postgres/postgres-healthcheck.sh  /usr/local/bin/postgres-healthcheck.sh
+COPY ./config/postgres/ergonode-common-functions.sh /usr/local/bin/ergonode-common-functions.sh
+
+RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
+
+HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/postgres-healthcheck.sh
