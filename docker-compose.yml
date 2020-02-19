@@ -1,5 +1,11 @@
 #docker-compose for development
 version: "3.7"
+x-cache-from:
+    - &ergonode-cache-from
+        cache_from:
+            - ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:latest
+            - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
+            - ${CONTAINER_REGISTRY_BASE:-ergonode}/node:latest
 services:
     postgres:
         build:
@@ -22,14 +28,12 @@ services:
         ports:
             - "${EXPOSED_POSTGRES_PORT:-5432}:5432"
         restart: always
-#        command: -c log_statement=all
     php:
         build:
             context: "./"
             target: php_development
-            cache_from:
-                - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
             dockerfile: Dockerfile-backend
+            <<: *ergonode-cache-from
         working_dir: /srv/app
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
@@ -52,12 +56,8 @@ services:
         build:
             context: ./
             target: nginx_development
-            cache_from:
-                - php_development
-                - nginx
-                - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
-                - ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:latest
             dockerfile: Dockerfile-backend
+            <<: *ergonode-cache-from
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:${IMAGE_TAG:-latest}
         volumes:
             - ./backend:/srv/app
@@ -79,7 +79,8 @@ services:
             target: node_development
             cache_from:
                 - ${CONTAINER_REGISTRY_BASE:-ergonode}/node:latest
-            dockerfile: Dockerfile-node
+            dockerfile: Dockerfile-backend
+            <<: *ergonode-cache-from
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/node:${IMAGE_TAG:-latest}
         working_dir: /srv/app
         volumes:
