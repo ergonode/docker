@@ -75,35 +75,28 @@ docker-compose  -f docker-compose.deploy.yml  push
 
 2. You need set all environment required variables described in `docker-compose.production.yml` and optionally  in `docker-compose.postgres.yml`.
 
-3. For environmental variables, you can create a file `.env` that must be executable by your shell.
+3. For environmental variables, you can create a file `.env`.
 
 4. Example `.env` file:
 
    ```bash
-     export COMPOSE_PROJECT_NAME=your-app-name
-     export CONTAINER_REGISTRY_BASE=your-registry-url/your-app-name
+     COMPOSE_PROJECT_NAME=your-app-name
+     CONTAINER_REGISTRY_BASE=your-registry-url/your-app-name
 
      ...
    ```
-
-5. Execute you `.env` file with command:
-
-   ```bash
-   $ . .env
-   ```
-6. Login to your registry (if your registry require this for pulling docker images)
+5. Login to your registry (if your registry require this for pulling docker images)
 
     ```bash
     docker login your-registry-url
     ```
    
-4. Create the your stack with `docker stack deploy:`
+6. Create the your stack with `docker stack deploy:`
    ```
     $ env $(cat .env | grep ^[a-zA-Z] | xargs) docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
-    Ignoring unsupported options: build, restart
    
     Creating network ergonode_ergonode
-    Creating service ergonode_node
+    Creating service ergonode_nuxtjs
     Creating service ergonode_php
     Creating service ergonode_postgres
     Creating service ergonode_nginx
@@ -111,26 +104,26 @@ docker-compose  -f docker-compose.deploy.yml  push
 
     If  You have managed PostgreSQL by your provider you can skip option `--compose-file docker-compose.postgres.yml`
       
-5. Check that it’s running with `docker stack services ergonode`:  
+7. Check that it’s running with `docker stack services ergonode`:  
    ```bash
    $ docker stack services ergonode
    ID                  NAME                MODE                REPLICAS            IMAGE                                            PORTS
-   4uwzc0p9hetl        ergonode_nginx      replicated          1/1                 harbor.strix.app/ergonode-demo/nginx:latest      *:80->80/tcp
-   q1me75mm90pw        ergonode_node       replicated          1/1                 harbor.strix.app/ergonode-demo/node:latest       
-   rlgcj8dyj54z        ergonode_postgres   replicated          1/1                 harbor.strix.app/ergonode-demo/postgres:latest   
-   s4hlonu65i8g        ergonode_php        replicated          1/1                 harbor.strix.app/ergonode-demo/php:latest
+   4uwzc0p9hetl        ergonode_nginx      replicated          1/1                 docker.io/ergonode/nginx:latest      *:80->80/tcp
+   q1me75mm90pw        ergonode_nuxtjs     replicated          1/1                 docker.io/ergonode/nuxtjs:latest       
+   rlgcj8dyj54z        ergonode_postgres   replicated          1/1                 docker.io/ergonode/postgres:latest   
+   s4hlonu65i8g        ergonode_php        replicated          1/1                 docker.io/ergonode/php:latest
    ```
    This might take some time if you have a multi-node swarm, as images need to be pulled.
    It may take some time if you have a multi-node, because the images have need to be pulled by swarm nodes.
    
    And you can test your application on port 80 (by default this is set in environment variable $EXPOSED_NGINX_PORT) at http://your-swarm-node-ip.
    
-6. If you want to bring down your stack then you can execute `docker stack rm:`
+8. If you want to bring down your stack then you can execute `docker stack rm:`
    ```bash
    $ docker stack rm ergonode 
    
    Removing service ergonode_nginx
-   Removing service ergonode_node
+   Removing service ergonode_nuxtjs
    Removing service ergonode_php
    Removing service ergonode_postgres
    Removing network ergonode_ergonode
