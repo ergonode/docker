@@ -2,12 +2,6 @@
 version: "3.7"
 services:
   php:
-    build:
-      context: "./"
-      target: php_development
-      cache_from:
-        - ${CONTAINER_REGISTRY_BASE}/php:latest
-      dockerfile: Dockerfile-backend
     image: ${CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
     environment:
       APP_ENV: prod
@@ -31,12 +25,6 @@ services:
       - "./backend/tests:/srv/app/tests:ro"
       - "./backend/features:/srv/app/features:ro"
   postgres:
-    build:
-      context: "./"
-      target: postgres_development
-      cache_from:
-        - ${CONTAINER_REGISTRY_BASE}/postgres:latest
-      dockerfile: Dockerfile-postgres
     image: ${CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}
     environment:
       POSTGRES_USER: postgres
@@ -46,3 +34,7 @@ services:
       APP_USER_PASSWORD: 123
       APP_DB: ergonode
       APP_TEST_DB: ergonode_test
+  node:
+    image: ${CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
+    command: exit 0
+

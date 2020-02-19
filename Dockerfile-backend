@@ -7,14 +7,10 @@
 
 FROM php:7.4-fpm as php
 
-# Basic tools
+# required packages and PHP extensionns
 RUN apt-get -y update \
     && apt-get -y install git \
         curl \
-        htop \
-        nano \
-        zip \
-        unzip \
         librabbitmq4 \
         librabbitmq-dev \
         libpq5 \
@@ -23,14 +19,12 @@ RUN apt-get -y update \
         graphviz \
         acl \
         libfcgi-bin \
-    && pecl install amqp-1.9.4
-
-# PHP extensionns
-RUN docker-php-ext-install -j$(nproc) \
+    && docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
     intl \
     pcntl \
+    && pecl install amqp \
     && docker-php-ext-enable amqp \
     && docker-php-ext-enable opcache
 

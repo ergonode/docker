@@ -18,7 +18,7 @@ ENV PORT=80
 CMD ["npm", "run", "dev"]
 
 COPY frontend /srv/app/
-RUN npm install
+RUN npm install && npm run build
 
 FROM node_development as node_production
 WORKDIR /srv/app

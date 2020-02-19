@@ -48,6 +48,7 @@ If you have correctly set up your testing tools you can execute the commands:
    done
    
     docker-compose -f docker-compose.test.yml run --rm php bin/phing test
+    docker-compose -f docker-compose.test.yml run --rm node npm run test
    ```
 
 2. To test your images on local machine you can use command
