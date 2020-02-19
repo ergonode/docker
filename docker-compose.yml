@@ -22,6 +22,7 @@ services:
         ports:
             - "${EXPOSED_POSTGRES_PORT:-5432}:5432"
         restart: always
+#        command: -c log_statement=all
     php:
         build:
             context: "./"
@@ -52,6 +53,9 @@ services:
             context: ./
             target: nginx_development
             cache_from:
+                - php_development
+                - nginx
+                - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
                 - ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:latest
             dockerfile: Dockerfile-backend
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:${IMAGE_TAG:-latest}
@@ -89,7 +93,7 @@ services:
     docs:
         build:
             context: "./"
-            target: docs_final
+            target: node_development
             cache_from:
                 - ${CONTAINER_REGISTRY_BASE:-ergonode}/docs:latest
             dockerfile: Dockerfile-node

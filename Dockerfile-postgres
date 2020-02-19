@@ -2,10 +2,10 @@
 FROM postgres:10-alpine as postgres_development
 
 COPY ./config/postgres/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
-ADD ./config/postgres/postgres-healthcheck.sh  /usr/local/bin/postgres-healthcheck.sh
-RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
+COPY ./config/postgres/postgres-healthcheck.sh  /usr/local/bin/postgres-healthcheck.sh
+COPY ./config/postgres/ergonode-common-functions.sh /usr/local/bin/ergonode-common-functions.sh
 
-ADD ./config/postgres/ergonode-common-functions.sh /usr/local/bin/ergonode-common-functions.sh
+RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
 
 HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/postgres-healthcheck.sh
 

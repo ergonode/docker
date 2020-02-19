@@ -2,7 +2,10 @@
 FROM node:12.6 as node
 
 COPY config/node/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-RUN chmod +x /usr/local/bin/docker-entrypoint
+RUN  set -eux; \
+    chmod +x /usr/local/bin/docker-entrypoint ; \
+    #We have installed curl?
+    curl --version
 
 ENTRYPOINT ["docker-entrypoint"]
 
@@ -17,23 +20,24 @@ ENV PORT=80
 
 CMD ["npm", "run", "dev"]
 
-COPY frontend /srv/app/
-RUN npm install && npm run build
-
 FROM node_development as node_production
+
 WORKDIR /srv/app
-#clean up
-# do not use .env /  test files in production
-RUN rm -f .env*
+
+COPY frontend /srv/app/
+RUN  set -eux; \
+    npm install ; \
+    npm run build ; \
+    #clean up
+    rm -f .env*
 
 CMD ["npm", "run", "start"]
 
-FROM node as docs
+FROM node as docs_development
+
 RUN npm install docsify-cli -g
 
 HEALTHCHECK --start-period=5m CMD curl --fail http://localhost:3000 || exit 1
 
 CMD ["docsify", "serve" ,"docs"]
-
-FROM docs as docs_final
 
