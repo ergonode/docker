@@ -95,7 +95,7 @@ If you want to enter some container
 ```bash
 docker-compose exec php bash
 docker-compose exec postgres bash
-docker-compose exec node bash
+docker-compose exec nuxtjs bash
 ```
 
 ## FAQ

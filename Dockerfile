@@ -12,19 +12,13 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # required packages and PHP extensionns
 RUN set -eux ; \
-    echo icu-dev \
-                 postgresql-dev \
-                 rabbitmq-c-dev \
-                 autoconf \
-                 musl-dev \
-                 gcc \
-                 make > /tmp/dev-packages ; \
     apk add  --no-cache git  \
         zip \
         unzip \
         curl \
         rabbitmq-c \
         libpq \
+        icu-libs \
         graphviz \
         acl \
         fcgi  \
