@@ -1,36 +1,35 @@
 # example docker-compose for push/build for production release
 # this file only require  CONTAINER_REGISTRY_BASE and optional IMAGE_TAG environment variable.
 version: "3.7"
+x-cache-from:
+  - &ergonode-cache-from
+    cache_from:
+      - ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:latest
+      - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
+      - ${CONTAINER_REGISTRY_BASE:-ergonode}/nuxtjs:latest
+      - ${CONTAINER_REGISTRY_BASE:-ergonode}/docsify:latest
 services:
   php:
     build:
       context: "./"
       target: php_production
-      cache_from:
-        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:latest
-      dockerfile: Dockerfile-backend
+      <<: *ergonode-cache-from
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
-  node:
+  nuxtjs:
     build:
       context: "./"
-      target: node_production
-      cache_from:
-        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:latest
-      dockerfile: Dockerfile-node
-    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
+      target: nuxtjs_production
+      <<: *ergonode-cache-from
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
   nginx:
     build:
       context: "./"
-      target: nginx_production
-      cache_from:
-        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:latest
-      dockerfile: Dockerfile-backend
+      target: nginx
+      <<: *ergonode-cache-from
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
   postgres:
     build:
       context: "./"
-      target: postgres_production
-      cache_from:
-        - ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:latest
-      dockerfile: Dockerfile-postgres
+      target: postgres
+      <<: *ergonode-cache-from
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}

@@ -1,10 +1,19 @@
 # example docker-compose for running images in production environment
 # All mandatory environment variables are required
 version: "3.7"
+x-networks:
+  - &ergonode-networks
+    networks:
+      ergonode:
+x-deploy:
+  - &ergonode-deploy
+    deploy:
+      update_config:
+        failure_action: rollback
+        order: start-first
 services:
   php:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
-    restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}
       APP_SECRET: ${APP_SECRET:?Missing mandatory value for APP_SECRET}
@@ -23,22 +32,20 @@ services:
       - "ergonode-multimedia:/srv/app/public/mutimedia"
       - "ergonode-import:/srv/app/import"
       - "ergonode-jwt:/srv/app/config/jwt"
-    networks:
-      ergonode:
-  node:
-    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
-    restart: always
+    <<: *ergonode-networks
+    <<: *ergonode-deploy
+  nuxtjs:
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
     environment:
       APP_ENV: ${APP_ENV:-prod}
       API_PROTOCOL: ${API_PROTOCOL:-https}
       API_HOST: ${API_HOST:?Missing mandatory value for API_HOST}
       API_PREFIX: ${API_PREFIX:-/api/v1/}
       API_PORT: ${API_PORT}
-    networks:
-      ergonode:
+    <<: *ergonode-networks
+    <<: *ergonode-deploy
   nginx:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
-    restart: always
     environment:
       APP_ENV: ${APP_ENV:-prod}
       PHP_UPSTREAM_HOST: ${PHP_UPSTREAM_HOST:-php}
@@ -47,8 +54,8 @@ services:
       - "ergonode-multimedia:/srv/app/public/mutimedia"
     ports:
       - "${EXPOSED_NGINX_PORT:-80}:80"
-    networks:
-      ergonode:
+    <<: *ergonode-networks
+    <<: *ergonode-deploy
 volumes:
   ergonode-multimedia:
   ergonode-import:

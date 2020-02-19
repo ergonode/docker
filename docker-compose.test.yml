@@ -34,7 +34,7 @@ services:
       APP_USER_PASSWORD: 123
       APP_DB: ergonode
       APP_TEST_DB: ergonode_test
-  node:
-    image: ${CONTAINER_REGISTRY_BASE}/node:${IMAGE_TAG:-latest}
+  nuxtjs:
+    image: ${CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
     command: exit 0
 
