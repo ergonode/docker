@@ -81,12 +81,14 @@ if [ "$1" = 'php-fpm' ] || [[ "$1" =~ (vendor/)?bin/.* ]] || [ "$1" = 'composer'
 fi
 
 if [ "$1" = 'php-fpm' ] ; then
-    mkdir -p var/cache var/log public/multimedia
+    mkdir -p var/cache var/log public/multimedia import
     >&2 echo "Setting file permissions..."
     setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
     setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX import
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX import
 
 
 
