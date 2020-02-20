@@ -18,7 +18,7 @@ if [ "$1" = 'nginx' ] ; then
      >&2 echo "Waiting for php host to be ready..."
      waitUntil ping -c 1 "${PHP_UPSTREAM_HOST}"
 
-	   >&2 echo "Waiting for node host to be ready..."
+	   >&2 echo "Waiting for nuxtjs host to be ready..."
 	   waitUntil ping -c 1 nuxtjs
 
      >&2 echo "nginx initialization finished"
