@@ -22,7 +22,8 @@ RUN set -eux ; \
         graphviz \
         acl \
         fcgi  \
-        bash ; \
+        bash \
+        libcurl ; \
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \
         postgresql-dev \
@@ -33,17 +34,20 @@ RUN set -eux ; \
         g++ \
         make \
         pkgconf \
-        file ; \
+        file \
+        curl-dev; \
     docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
     intl \
-    pcntl ; \
+    pcntl  \
+    curl ; \
     pecl install amqp ; \
     pecl install xdebug; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable opcache ; \
     docker-php-ext-enable xdebug ; \
+    docker-php-ext-enable curl ; \
     echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
     echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
