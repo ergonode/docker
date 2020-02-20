@@ -174,7 +174,7 @@ RUN  set -eux; \
 
 CMD ["npm", "run", "dev"]
 
-FROM node as nuxtjs_production
+FROM nuxtjs as nuxtjs_production
 
 WORKDIR /srv/app
 
