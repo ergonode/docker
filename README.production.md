@@ -38,6 +38,9 @@ If you have correctly set up your testing tools you can execute the commands:
 
    ```bash
    #!/bin/bash
+
+   set -eo pipefail
+
    function finish {
      docker-compose -f docker-compose.test.yml rm --stop --force
    }
