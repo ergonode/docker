@@ -96,6 +96,8 @@ COPY backend/public public/
 COPY backend/src src/
 COPY backend/templates templates/
 COPY backend/translations translations/
+#copy app version if exists
+COPY backend/.env backend/app.versio[n]  ./
 
 #clean up
 RUN set -eux; \
@@ -170,6 +172,9 @@ ENV PORT=80
 WORKDIR /srv/app
 
 COPY frontend /srv/app/
+#copy app version if exists
+COPY frontend/.env.dist frontend/app.versio[n]  ./
+
 RUN  set -eux; \
     npm install ; \
     npm run build ; \
