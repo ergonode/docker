@@ -170,11 +170,13 @@ RUN  set -eux; \
     npm install ; \
     npm run build ; \
     #clean up
-    rm -f .env*
+    rm -f .env
 
 CMD ["npm", "run", "dev"]
 
 FROM node as nuxtjs_production
+
+WORKDIR /srv/app
 
 CMD ["npm", "run", "start"]
 
