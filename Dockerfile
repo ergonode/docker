@@ -96,8 +96,7 @@ COPY backend/public public/
 COPY backend/src src/
 COPY backend/templates templates/
 COPY backend/translations translations/
-#copy app version if exists
-COPY backend/.env backend/app.versio[n]  ./
+
 
 #clean up
 RUN set -eux; \
@@ -125,6 +124,9 @@ RUN set -eux; \
      config/jwt/*.pem \
      tests \
      features
+
+#copy app version if exists
+COPY backend/.env backend/app.versio[n]  ./
 
 FROM nginx:1.17-alpine AS nginx
 
@@ -172,8 +174,6 @@ ENV PORT=80
 WORKDIR /srv/app
 
 COPY frontend /srv/app/
-#copy app version if exists
-COPY frontend/.env.dist frontend/app.versio[n]  ./
 
 RUN  set -eux; \
     npm install ; \
@@ -186,6 +186,9 @@ CMD ["npm", "run", "dev"]
 FROM nuxtjs as nuxtjs_production
 
 WORKDIR /srv/app
+
+#copy app version if exists
+COPY frontend/.env.dist frontend/app.versio[n]  ./
 
 CMD ["npm", "run", "start"]
 
