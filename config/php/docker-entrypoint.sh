@@ -83,10 +83,10 @@ fi
 if [ "$1" = 'php-fpm' ] ; then
     mkdir -p var/cache var/log public/multimedia
     >&2 echo "Setting file permissions..."
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var  >/dev/null 2>&1
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var >/dev/null 2>&1
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia  >/dev/null 2>&1
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia >/dev/null 2>&1
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
 
 
 
