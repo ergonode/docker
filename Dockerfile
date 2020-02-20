@@ -1,4 +1,4 @@
-# the different stages of this Dockerfile-backend are meant to be built into separate images
+# the different stages of this Dockerfile are meant to be built into separate images
 # https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
 # https://docs.docker.com/compose/compose-file/#target
 # https://docs.docker.com/compose/environment-variables/
