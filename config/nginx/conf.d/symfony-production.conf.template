@@ -1,5 +1,9 @@
 upstream php-upstream {
-    server ${PHP_UPSTREAM_HOST}:9000;
+    server ${PHP_HOST}:9000;
+}
+
+upstream nuxtjs-upstream {
+    server ${NUXTJS_HOST}:80;
 }
 
 server {
@@ -8,9 +12,6 @@ server {
 
     location ~* ^/(api|bundles|user|multimedia|template|_wdt|_profiler) {
         try_files ${DOLLAR}uri /index.php${DOLLAR}is_args${DOLLAR}args;
-#        proxy_pass http://127.0.0.1:7777;
-#        proxy_set_header Host ${DOLLAR}host;
-#        proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
     }
 
     location / {
@@ -18,7 +19,7 @@ server {
     }
 
     location @nuxtjs {
-        proxy_pass http://nuxtjs:80;
+        proxy_pass http://nuxtjs-upstream;
         proxy_set_header Host ${DOLLAR}host;
         proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
     }

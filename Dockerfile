@@ -133,8 +133,7 @@ FROM nginx:1.17-alpine AS nginx
 RUN  set -eux; \
     apk add  --no-cache \
     curl \
-    bash \
-    iputils; \
+    bash ; \
     rm -rf /tmp/*
 
 COPY ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
@@ -179,6 +178,7 @@ RUN  set -eux; \
     npm install ; \
     npm run build ; \
     #clean up
+    npm cache clean -f ; \
     rm -f .env
 
 CMD ["npm", "run", "dev"]
@@ -195,6 +195,9 @@ CMD ["npm", "run", "start"]
 FROM node as docsify
 
 RUN npm install docsify-cli -g
+RUN  set -eux; \
+    npm install docsify-cli -g ; \
+    npm cache clean -f
 
 HEALTHCHECK --start-period=5m CMD curl --fail http://localhost:3000 || exit 1
 

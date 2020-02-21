@@ -1,5 +1,9 @@
 upstream php-upstream {
-    server ${PHP_UPSTREAM_HOST}:9000;
+    server ${PHP_HOST}:9000;
+}
+
+upstream nuxtjs-upstream {
+    server ${NUXTJS_HOST}:80;
 }
 
 server {

@@ -48,7 +48,8 @@ services:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
     environment:
       APP_ENV: ${APP_ENV:-prod}
-      PHP_UPSTREAM_HOST: ${PHP_UPSTREAM_HOST:-php}
+      PHP_HOST: ${PHP_HOST:-php}
+      NUXTJS_HOST: ${PHP_HOST:-nuxtjs}
       DOLLAR: "$$"
     volumes:
       - "ergonode-multimedia:/srv/app/public/mutimedia"
@@ -56,6 +57,9 @@ services:
       - "${EXPOSED_NGINX_PORT:-80}:80"
     <<: *ergonode-networks
     <<: *ergonode-deploy
+    depends_on:
+      - php
+      - nuxtjs
 volumes:
   ergonode-multimedia:
   ergonode-import:

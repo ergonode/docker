@@ -2,12 +2,6 @@
 
 set -e
 
-function waitUntil() {
-  until "$@"  > /dev/null 2>&1 ; do
-    sleep 1
-  done
-}
-
 if [ "$1" = 'nginx' ] ; then
 
     envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf
@@ -15,13 +9,24 @@ if [ "$1" = 'nginx' ] ; then
         envsubst < /etc/nginx/conf.d/symfony-production.conf.template > /etc/nginx/conf.d/default.conf
     fi
 
-     >&2 echo "Waiting for php host to be ready..."
-     waitUntil ping -c 1 "${PHP_UPSTREAM_HOST}"
-
-	   >&2 echo "Waiting for nuxtjs host to be ready..."
-	   waitUntil ping -c 1 nuxtjs
-
      >&2 echo "nginx initialization finished"
-fi
+    function finish {
+        jobs=$(jobs -p)
+        if [[ -n ${jobs} ]] ; then
+            kill $(jobs -p)
+        fi
+    }
+    trap finish EXIT
 
-exec "$@"
+    startTime=$SECONDS
+    until "$@" ; do
+        exitCode=$?
+        sleep 5
+        elapsedTime=$(($SECONDS - $startTime))
+        if (( $elapsedTime > ${START_PERIOD:-300} )); then
+            exit ${exitCode}
+        fi
+    done
+else
+    exec "$@"
+fi
