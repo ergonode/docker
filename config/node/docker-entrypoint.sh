@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "$APP_ENV" == 'prod' ]; then
+    export NODE_ENV=production
+fi
+
 if [ "$1" = 'npm' ] ; then
   if [ "$APP_ENV" != 'prod' ]; then
     npm install
