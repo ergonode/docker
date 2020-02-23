@@ -60,7 +60,8 @@ services:
             - ./backend:/srv/app
         working_dir: /srv/app
         environment:
-            PHP_UPSTREAM_HOST: php
+            PHP_HOST: ${PHP_HOST:-php}
+            NUXTJS_HOST: ${PHP_HOST:-nuxtjs}
             DOLLAR: "$$"
         ports:
             - "${EXPOSED_NGINX_PORT:-8000}:80"
@@ -81,7 +82,7 @@ services:
             - "${EXPOSED_NODE_PORT:-80}:80"
         environment:
             EXPOSED_NODE_PORT: ${EXPOSED_NODE_PORT:-80}
-            API_PORT: ${API_PORT:-8000}
+            API_BASE_URL: http://localhost:8000
         restart: always
     docsify:
         build:
