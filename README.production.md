@@ -3,7 +3,7 @@
 
 ## Build
  
-1. You Must copy or clone your backend and frontend  app to the docker directory.
+1. You Must copy or clone your **production** backend and frontend  app to the docker directory.
 
 2. Directory structure
 
@@ -120,8 +120,14 @@ docker-compose  -f docker-compose.deploy.yml  push
    It may take some time if you have a multi-node, because the images have need to be pulled by swarm nodes.
    
    And you can test your application on port 80 (by default this is set in environment variable $EXPOSED_NGINX_PORT) at http://your-swarm-node-ip.
+
+9. To check your service logs you can do this with `docker service logs ergonode_service_name` 
+   ```bash
+   $ docker   service logs -f ergonode_nginx
+   ergonode_nginx.1.z8ohiml3lj9l@swarm    | 127.0.0.1 - - [25/Feb/2020:09:59:49 +0000] "GET /api/doc HTTP/1.1" 200 98347 "-" "curl/7.66.0" "-"
+   ``` 
    
-8. If you want to bring down your stack then you can execute `docker stack rm:`
+10. If you want to bring down your stack then you can execute `docker stack rm:`
    ```bash
    $ docker stack rm ergonode 
    
@@ -130,4 +136,4 @@ docker-compose  -f docker-compose.deploy.yml  push
    Removing service ergonode_php
    Removing service ergonode_postgres
    Removing network ergonode_ergonode
-  ```     
+  ```
