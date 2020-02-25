@@ -5,99 +5,210 @@
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 
-FROM php:7.4-fpm as php
+FROM php:7.4-fpm-alpine as php
 
-# Basic tools
-RUN apt-get -y update \
-    && apt-get -y install git \
-        curl \
-        htop \
-        nano \
+ENV COMPOSER_ALLOW_SUPERUSER=1
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+# required packages and PHP extensionns
+RUN set -eux ; \
+    apk add  --no-cache git  \
         zip \
         unzip \
-        librabbitmq-dev \
-        libpq-dev \
-        libicu-dev \
+        curl \
+        rabbitmq-c \
+        libpq \
+        icu-libs \
         graphviz \
         acl \
-        libfcgi-bin \
-    && apt-get clean \
-    && pecl install amqp-1.9.4
-
-# PHP extensionns
-RUN docker-php-ext-install -j$(nproc) \
+        fcgi  \
+        bash \
+        libcurl ; \
+    apk add --no-cache --virtual .fetch-deps \
+        icu-dev \
+        postgresql-dev \
+        rabbitmq-c-dev \
+        autoconf \
+        musl-dev \
+        gcc \
+        g++ \
+        make \
+        pkgconf \
+        file \
+        curl-dev; \
+    docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
     intl \
-    pcntl \
-    && docker-php-ext-enable amqp \
-    && docker-php-ext-enable opcache
+    pcntl  \
+    curl ; \
+    pecl install amqp ; \
+    pecl install xdebug; \
+    docker-php-ext-enable amqp ; \
+    docker-php-ext-enable opcache ; \
+    docker-php-ext-enable xdebug ; \
+    docker-php-ext-enable curl ; \
+    echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
+    echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-# Composer
-ENV COMPOSER_ALLOW_SUPERUSER=1
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer --ansi --version --no-interaction
+COPY ./config/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY ./config/php/php-fpm.d/zzz-01-healthcheck.conf /usr/local/etc/php-fpm.d/zzz-01-healthcheck.conf
+COPY ./config/php/php-fpm-healthcheck.sh /usr/local/bin/php-fpm-healthcheck
+COPY ./config/php/override.ini /usr/local/etc/php/conf.d/override.ini
 
-# install Symfony Flex globally to speed up download of Composer packages (parallelized prefetching)
+# install Symfony Flex globally to speed up download of Composer packages (parallelized prefetching) \
+RUN set -eux ; \
+    chmod +x /usr/local/bin/docker-entrypoint; \
+    chmod 755 /usr/local/bin/php-fpm-healthcheck ; \
+    composer --ansi --version --no-interaction; \
+    composer global require "symfony/flex" --prefer-dist --no-progress --no-suggest --classmap-authoritative; \
+	composer clear-cache;
+
+HEALTHCHECK --start-period=5m  CMD php-fpm-healthcheck
+ENTRYPOINT ["docker-entrypoint"]
+CMD ["php-fpm"]
+
+WORKDIR /srv/app
+
+COPY  backend/composer.json \
+    backend/composer.lock \
+    backend/symfony.lock \
+    backend/.env \
+    backend/.env.test \
+    backend/phpunit.xml.dist \
+    backend/phpstan.neon.dist \
+    backend/phpcs.xml.dist \
+    backend/behat.yml.dist \
+    backend/depfile.yml \
+    backend/.travis.yml \
+    backend/build.xml \
+      ./
+
 RUN set -eux; \
-	composer global require "symfony/flex" --prefer-dist --no-progress --no-suggest --classmap-authoritative; \
+	composer install --prefer-dist --no-autoloader --no-scripts --no-progress --no-suggest; \
+	mkdir -p config/jwt var/cache var/log import public/multimedia; \
 	composer clear-cache
 
-COPY config/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY backend/bin bin/
+COPY backend/config config/
+COPY backend/module module/
+COPY backend/public public/
+COPY backend/src src/
+COPY backend/templates templates/
+COPY backend/translations translations/
+
+
+#clean up
+RUN set -eux; \
+    chmod +x bin/console; \
+	composer dump-autoload --optimize; \
+	composer dump-env prod; \
+    composer run-script post-install-cmd; \
+	bin/console cache:clear --env=prod --no-debug ; \
+	bin/console cache:clear --env=dev
+
+FROM php as php_production
+	# do not use .env  in production
+RUN set -eux; \
+    pecl uninstall xdebug ; \
+    rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
+    # remove unnecessary dev packages
+    apk del --no-network .fetch-deps ; \
+    php --version ; \
+	rm -f .env \
+     .env.test \
+     *.dist \
+     *.md \
+     .travis.yml  \
+     depfile.yml \
+     config/jwt/*.pem \
+     tests \
+     features
+
+#copy app version if exists
+COPY backend/.env backend/app.versio[n]  ./
+
+FROM nginx:1.17-alpine AS nginx
+
+RUN  set -eux; \
+    apk add  --no-cache \
+    curl \
+    bash ; \
+    rm -rf /tmp/*
+
+COPY ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
+COPY ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
+COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./config/nginx/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --from=php /srv/app/public /srv/app/public
+
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
-#HEALTHCHECK
-ADD ./config/php/php-fpm.d/zzz-01-healthcheck.conf /usr/local/etc/php-fpm.d/zzz-01-healthcheck.conf
-ADD ./config/php/php-fpm-healthcheck.sh /usr/local/bin/php-fpm-healthcheck
-RUN chmod 755 /usr/local/bin/php-fpm-healthcheck
+HEALTHCHECK --start-period=5m CMD curl --fail http://localhost/api/doc || exit 1
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD php-fpm-healthcheck
+ENTRYPOINT ["docker-entrypoint"]
+CMD ["nginx", "-g", "daemon off;"]
 
+FROM node:12.6-alpine as node
 
-RUN rm -rf /tmp/*
+COPY config/node/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN  set -eux; \
+    chmod +x /usr/local/bin/docker-entrypoint ; \
+    apk add  --no-cache \
+    curl \
+    bash
+
 
 ENTRYPOINT ["docker-entrypoint"]
 
-CMD ["php-fpm"]
+FROM node as nuxtjs
 
-FROM php as php_final
+WORKDIR /srv/app
 
-FROM php_final as php_final_with_xdebug
-
-RUN pecl install xdebug && docker-php-ext-enable xdebug
-RUN echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-RUN echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-
-
-FROM nginx:1.17 AS nginx
-
-RUN apt-get update && apt-get install -y \
-    curl
-
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost/api/doc || exit 1
-
-FROM nginx as nginx_final
-
-FROM node:12.6 as node
-
-COPY config/node/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-RUN chmod +x /usr/local/bin/docker-entrypoint
+HEALTHCHECK --start-period=5m CMD curl --fail http://localhost || exit 1
 
 ENV HOST=0.0.0.0
 ENV PORT=80
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost || exit 1
 
-ENTRYPOINT ["docker-entrypoint"]
+WORKDIR /srv/app
+
+COPY frontend /srv/app/
+
+RUN  set -eux; \
+    npm install ; \
+    npm run build ; \
+    #clean up
+    npm cache clean -f ; \
+    rm -f .env
+
 CMD ["npm", "run", "dev"]
 
-FROM node as node_final
+FROM nuxtjs as nuxtjs_production
 
-FROM node as docs
+WORKDIR /srv/app
+
+#copy app version if exists
+COPY frontend/.env.dist frontend/app.versio[n]  ./
+
+CMD ["npm", "run", "start"]
+
+FROM node as docsify
+
 RUN npm install docsify-cli -g
+RUN  set -eux; \
+    npm install docsify-cli -g ; \
+    npm cache clean -f
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl --fail http://localhost:3000 || exit 1
+HEALTHCHECK --start-period=5m CMD curl --fail http://localhost:3000 || exit 1
 
 CMD ["docsify", "serve" ,"docs"]
 
-FROM docs as docs_final
+FROM postgres:10-alpine as postgres
 
+COPY ./config/postgres/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
+COPY ./config/postgres/postgres-healthcheck.sh  /usr/local/bin/postgres-healthcheck.sh
+COPY ./config/postgres/ergonode-common-functions.sh /usr/local/bin/ergonode-common-functions.sh
+
+RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
+
+HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/postgres-healthcheck.sh

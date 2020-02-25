@@ -1,0 +1,41 @@
+#example docker-compose for running tests
+version: "3.7"
+services:
+  php:
+    image: ${CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
+    environment:
+      APP_ENV: prod
+      JWT_PRIVATE_KEY_PATH: config/jwt/private.pem
+      JWT_PUBLIC_KEY_PATH: config/jwt/public.pem
+      JWT_PASSPHRASE: 1234
+      APP_URL: http://localhost:8001
+    volumes:
+      - "./backend/var/log:/srv/app/var/log"
+      - "./backend/composer.json:/srv/app/composer.json:ro"
+      - "./backend/composer.lock:/srv/app/composer.lock:ro"
+      - "./backend/symfony.lock:/srv/app/symfony.lock:ro"
+      - "./backend/.env:/srv/app/.env:ro"
+      - "./backend/.env.test:/srv/app/.env.test:ro"
+      - "./backend/phpunit.xml.dist:/srv/app/phpunit.xml.dist:ro"
+      - "./backend/phpstan.neon.dist:/srv/app/phpstan.neon.dist:ro"
+      - "./backend/phpcs.xml.dist:/srv/app/phpcs.xml.dist:ro"
+      - "./backend/behat.yml.dist:/srv/app/behat.yml.dist:ro"
+      - "./backend/depfile.yml:/srv/app/depfile.yml:ro"
+      - "./backend/.travis.yml:/srv/app/.travis.yml:ro"
+      - "./backend/build.xml:/srv/app/build.xml:ro"
+      - "./backend/tests:/srv/app/tests:ro"
+      - "./backend/features:/srv/app/features:ro"
+  postgres:
+    image: ${CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: postgres
+      APP_USER: ergonode
+      APP_USER_PASSWORD: 123
+      APP_DB: ergonode
+      APP_TEST_DB: ergonode_test
+  nuxtjs:
+    image: ${CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
+    command: exit 0
+

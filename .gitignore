@@ -4,3 +4,6 @@
 
 /data/*
 !/data/.gitkeep
+/backend/
+/frontend/
+/docs/

@@ -10,15 +10,18 @@ server {
     server_name symfony;
     root /srv/app/public;
 
-    location / {
+    location ~* ^/(api|bundles|user|multimedia|template|_wdt|_profiler) {
         try_files ${DOLLAR}uri /index.php${DOLLAR}is_args${DOLLAR}args;
-        # kill cache
+    }
 
-        add_header Last-Modified ${DOLLAR}date_gmt;
-        add_header Cache-Control 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
-        if_modified_since off;
-        expires off;
-        etag off;
+    location / {
+        try_files ${DOLLAR}uri @nuxtjs;
+    }
+
+    location @nuxtjs {
+        proxy_pass http://nuxtjs-upstream;
+        proxy_set_header Host ${DOLLAR}host;
+        proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
     }
 
     location ~ ^/index\.php(/|$) {

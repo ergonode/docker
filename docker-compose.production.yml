@@ -1,0 +1,66 @@
+# example docker-compose for running images in production environment
+# All mandatory environment variables are required
+version: "3.7"
+x-networks:
+  - &ergonode-networks
+    networks:
+      ergonode:
+x-deploy:
+  - &ergonode-deploy
+    deploy:
+      update_config:
+        failure_action: rollback
+        order: start-first
+services:
+  php:
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      APP_SECRET: ${APP_SECRET:?Missing mandatory value for APP_SECRET}
+      DATABASE_URL: ${DATABASE_URL:?Missing mandatory value for DATABASE_URL}
+      JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:?Missing mandatory value for JWT_PASSPHRASE}
+      JWT_TOKEN_TTL: ${JWT_TOKEN_TTL:-3600}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:?Missing mandatory value for CORS_ALLOW_ORIGIN}
+      APP_HOST: ${APP_HOST:?Missing mandatory value for APP_HOST}
+      APP_SCHEME: ${APP_SCHEME:-https}
+      APP_URL: ${APP_URL:?Missing mandatory value for APP_URL}
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^localhost|example\.com$}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+    volumes:
+      - "ergonode-multimedia:/srv/app/public/mutimedia"
+      - "ergonode-import:/srv/app/import"
+      - "ergonode-jwt:/srv/app/config/jwt"
+    <<: *ergonode-networks
+    <<: *ergonode-deploy
+  nuxtjs:
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      API_BASE_URL: ${API_BASE_URL:-?Missing mandatory value for API_BASE_URL}
+    <<: *ergonode-networks
+    <<: *ergonode-deploy
+  nginx:
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nginx:${IMAGE_TAG:-latest}
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      PHP_HOST: ${PHP_HOST:-php}
+      NUXTJS_HOST: ${PHP_HOST:-nuxtjs}
+      DOLLAR: "$$"
+    volumes:
+      - "ergonode-multimedia:/srv/app/public/mutimedia"
+    ports:
+      - "${EXPOSED_NGINX_PORT:-80}:80"
+    <<: *ergonode-networks
+    <<: *ergonode-deploy
+    depends_on:
+      - php
+      - nuxtjs
+volumes:
+  ergonode-multimedia:
+  ergonode-import:
+  ergonode-jwt:
+networks:
+  ergonode:
+    attachable: true

@@ -1,1 +1,14 @@
 ./data
+./backend/.git
+./fronted/.git
+./frontend/node_modules/
+./frontend/.nuxt
+./frontend/.env
+./frontend/dist
+./backend/config/jwt/
+./backend/var/
+./backend/vendor/
+./backend/build/
+./backend/bin/*
+!./backend/bin/.gitignore
+!./backend/bin/console

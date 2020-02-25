@@ -1,0 +1,38 @@
+version: "3.7"
+x-networks:
+  - &ergonode-networks
+    networks:
+      ergonode:
+x-deploy:
+  - &ergonode-deploy
+    deploy:
+      update_config:
+        failure_action: rollback
+        order: start-first
+services:
+  postgres:
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}
+    volumes:
+      - "ergonode-postgres-data:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD_FILE: /run/secrets/ergonode-postgres-passwd
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      APP_USER: ${APP_USER:-ergonode}
+      APP_USER_PASSWORD_FILE: /run/secrets/ergonode-user-passwd
+      APP_DB: ${APP_DB:-ergonode}
+    secrets:
+      - ergonode-postgres-passwd
+      - ergonode-user-passwd
+    <<: *ergonode-networks
+    <<: *ergonode-deploy
+volumes:
+  ergonode-postgres-data:
+networks:
+  ergonode:
+    attachable: true
+secrets:
+  ergonode-postgres-passwd:
+    external: true
+  ergonode-user-passwd:
+    external: true

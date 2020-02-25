@@ -15,25 +15,21 @@ This is only a development solution! Do not use it on production environments!
 
 At first you must install Docker and Docker Compose (https://docs.docker.com/compose).
 
-Next, you must clone frontend and backend and docs repositories to ergonode directory:
+Next, you must clone frontend and backend and docs repositories to docker directory:
 
 ```bash
-mkdir ergonode
-cd ergonode
 git clone git@github.com:ergonode/docker.git
+cd docker
 git clone git@github.com:ergonode/frontend.git
 git clone git@github.com:ergonode/backend.git
 git clone git@github.com:ergonode/docs.git
 ```
 
-Next, you will need to enter docker directory and copy ``.env.dist``
 
-```bash
-cd docker
-cp .env.dist .env
-```
 
-If you want to test ergonode in multiple directories you need to change in the  `.env` file
+
+
+If you want to test ergonode in multiple directories you need to create the  `.env` file and set
 COMPOSE_PROJECT_NAME env var to some unique value
 
 Now you can start start docker by simple command
@@ -99,7 +95,7 @@ If you want to enter some container
 ```bash
 docker-compose exec php bash
 docker-compose exec postgres bash
-docker-compose exec node bash
+docker-compose exec nuxtjs bash
 ```
 
 ## FAQ
@@ -128,3 +124,4 @@ A: No problem. Just send me an email to daniel.marynicz@strix.net and attach a b
 Q: This is bullshit, how can i thank you for this crap?
 A: No problem. Just send me an email to daniel.marynicz@strix.net but don't forget attach a beer
 ```
+
