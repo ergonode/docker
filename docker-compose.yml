@@ -36,7 +36,6 @@ services:
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
             - ./backend:/srv/app
-            - ./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini
 
         environment:
             XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_host=172.17.0.1}

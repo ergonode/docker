@@ -131,7 +131,12 @@ A: For now only database in data folder
 
 ```
 Q: Where can i change PHP settings?
-A: In config/php/override.ini file
+A: In the environment variable PHP_INI_DIRECTIVES each setting must be delimited by ;
+```
+
+```
+Q: Where can i change nginx http settings?
+A: In the environment variable NGINX_HTTP_DIRECTIVES each setting must be delimited by ;
 ```
 
 ```
