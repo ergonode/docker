@@ -150,7 +150,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint
 
 HEALTHCHECK --start-period=5m CMD curl --fail http://localhost/api/doc || exit 1
 
-ENV NGINX_HTTP_DIRECTIVES="client_max_body_size 1m;"
+ENV NGINX_HTTP_DIRECTIVES="client_max_body_size 250m;"
 
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["nginx", "-g", "daemon off;"]
