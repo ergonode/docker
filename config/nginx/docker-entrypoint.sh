@@ -7,10 +7,9 @@ if [ "${1#-}" != "$1" ]; then
 	set -- nginx "$@"
 fi
 
-echo "$@"
 if [ "$1" = 'nginx' ] ; then
 
-    DOLLAR="\$" envsubst < /etc/nginx/conf.d/http-directives.conf.template | sed "s~;\s*~;\n~g" > /etc/nginx/conf.d/default.conf
+    DOLLAR="\$" envsubst < /etc/nginx/conf.d/http-directives.conf.template | sed "s~;\s*~;\n~g"  | sed "s~^\s*;~~g" > /etc/nginx/conf.d/default.conf
     DOLLAR="\$"  envsubst < /etc/nginx/conf.d/symfony-development.conf.template >> /etc/nginx/conf.d/default.conf
     if [ "$APP_ENV" == 'prod' ]; then
         DOLLAR="\$"  envsubst < /etc/nginx/conf.d/symfony-production.conf.template >> /etc/nginx/conf.d/default.conf
