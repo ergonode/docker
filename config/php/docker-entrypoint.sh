@@ -67,6 +67,9 @@ if [ "${1#-}" != "$1" ]; then
 	set -- php-fpm "$@"
 fi
 
+
+envsubst < /usr/local/etc/php/php-ini-directives.ini.template | sed "s~;\s*~\n~g"  > /usr/local/etc/php/conf.d/php-ini-directives.ini
+
 if [ "$1" = 'php-fpm' ] || [[ "$1" =~ (vendor/)?bin/.* ]] || [ "$1" = 'composer' ]; then
 
 	PHP_INI_RECOMMENDED="$PHP_INI_DIR/php.ini-production"
@@ -101,12 +104,12 @@ if [ "$1" = 'php-fpm' ] ; then
 
     if [ "$APP_ENV" != 'prod' ]; then
       bin/phing build
-      enableXdebug
     fi
 
     bin/console ergonode:migrations:migrate --no-interaction --allow-no-migration
 
     if [ "$APP_ENV" != 'prod' ]; then
+        enableXdebug
         echo -e "\e[30;48;5;82mergonode  api is available at http://localhost:${EXPOSED_NGINX_PORT} \e[0m"
     fi
 

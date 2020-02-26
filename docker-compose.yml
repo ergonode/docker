@@ -36,7 +36,6 @@ services:
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
             - ./backend:/srv/app
-            - ./config/php/override.ini:/usr/local/etc/php/conf.d/override.ini
 
         environment:
             XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_host=172.17.0.1}
@@ -45,6 +44,7 @@ services:
             JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
             JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
             JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
+            PHP_INI_DIRECTIVES: ${PHP_INI_DIRECTIVES:-upload_max_filesize=250M; post_max_size = 250M; memory_limit=256M}
         depends_on:
             - postgres
         links:
@@ -62,12 +62,11 @@ services:
         environment:
             PHP_HOST: ${PHP_HOST:-php}
             NUXTJS_HOST: ${PHP_HOST:-nuxtjs}
-            DOLLAR: "$$"
+            NGINX_HTTP_DIRECTIVES: ${NGINX_HTTP_DIRECTIVES:-client_max_body_size 250m;}
         ports:
             - "${EXPOSED_NGINX_PORT:-8000}:80"
         depends_on:
             - php
-        command: /bin/bash -c "envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
         restart: always
     nuxtjs:
         build:
