@@ -26,7 +26,8 @@ RUN set -eux ; \
         fcgi  \
         bash \
         libcurl \
-        gettext ; \
+        gettext \
+        gnu-libiconv ; \
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \
         postgresql-dev \
@@ -53,6 +54,8 @@ RUN set -eux ; \
     docker-php-ext-enable curl ; \
     echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
     echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 COPY ./config/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY ./config/php/php-fpm.d/zzz-01-healthcheck.conf /usr/local/etc/php-fpm.d/zzz-01-healthcheck.conf
