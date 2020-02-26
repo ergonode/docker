@@ -7,7 +7,9 @@
 
 FROM php:7.4-fpm-alpine as php
 
-ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV COMPOSER_HOME /tmp
+ENV COMPOSER_MEMORY_LIMIT -1
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # required packages and PHP extensionns
@@ -23,7 +25,8 @@ RUN set -eux ; \
         acl \
         fcgi  \
         bash \
-        libcurl ; \
+        libcurl \
+        gettext ; \
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \
         postgresql-dev \
@@ -54,7 +57,7 @@ RUN set -eux ; \
 COPY ./config/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY ./config/php/php-fpm.d/zzz-01-healthcheck.conf /usr/local/etc/php-fpm.d/zzz-01-healthcheck.conf
 COPY ./config/php/php-fpm-healthcheck.sh /usr/local/bin/php-fpm-healthcheck
-COPY ./config/php/override.ini /usr/local/etc/php/conf.d/override.ini
+COPY ./config/php/php-ini-directives.ini.template /usr/local/etc/php/php-ini-directives.ini.template
 
 # install Symfony Flex globally to speed up download of Composer packages (parallelized prefetching) \
 RUN set -eux ; \
@@ -136,6 +139,7 @@ RUN  set -eux; \
     bash ; \
     rm -rf /tmp/*
 
+COPY ./config/nginx/conf.d/http-directives.conf.template /etc/nginx/conf.d/http-directives.conf.template
 COPY ./config/nginx/conf.d/symfony-development.conf.template /etc/nginx/conf.d/symfony-development.conf.template
 COPY ./config/nginx/conf.d/symfony-production.conf.template /etc/nginx/conf.d/symfony-production.conf.template
 COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf
@@ -145,6 +149,8 @@ COPY --from=php /srv/app/public /srv/app/public
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
 HEALTHCHECK --start-period=5m CMD curl --fail http://localhost/api/doc || exit 1
+
+ENV NGINX_HTTP_DIRECTIVES="client_max_body_size 1m;"
 
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["nginx", "-g", "daemon off;"]
@@ -194,7 +200,6 @@ CMD ["npm", "run", "start"]
 
 FROM node as docsify
 
-RUN npm install docsify-cli -g
 RUN  set -eux; \
     npm install docsify-cli -g ; \
     npm cache clean -f

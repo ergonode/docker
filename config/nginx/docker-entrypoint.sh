@@ -2,11 +2,18 @@
 
 set -e
 
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+	set -- nginx "$@"
+fi
+
+echo "$@"
 if [ "$1" = 'nginx' ] ; then
 
-    envsubst < /etc/nginx/conf.d/symfony-development.conf.template > /etc/nginx/conf.d/default.conf
+    DOLLAR="\$" envsubst < /etc/nginx/conf.d/http-directives.conf.template | sed "s~;\s*~;\n~g" > /etc/nginx/conf.d/default.conf
+    DOLLAR="\$"  envsubst < /etc/nginx/conf.d/symfony-development.conf.template >> /etc/nginx/conf.d/default.conf
     if [ "$APP_ENV" == 'prod' ]; then
-        envsubst < /etc/nginx/conf.d/symfony-production.conf.template > /etc/nginx/conf.d/default.conf
+        DOLLAR="\$"  envsubst < /etc/nginx/conf.d/symfony-production.conf.template >> /etc/nginx/conf.d/default.conf
     fi
 
      >&2 echo "nginx initialization finished"
