@@ -1,40 +1,45 @@
 version: "3.7"
 services:
-  rabbit1:
+#  rabbit-main:
+#    image: ${CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
+#    build:
+#      context: "./"
+#      dockerfile: Dockerfile-rabbitmq
+#      target: rabbitmq-management
+#    environment:
+#      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+#      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+#      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
+#    ports:
+#      - "15673:15672"
+#    networks:
+#      test:
+#    hostname: rabbit-main
+#    deploy:
+#      mode: global
+  rabbit2:
+    image: ${CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
     build:
       context: "./"
       dockerfile: Dockerfile-rabbitmq
       target: rabbitmq-management
     environment:
+      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
-      RABBITMQ_USE_LONGNAME: 'true'
+      CLUSTER_WITH: rabbit
+    networks:
+      test:
+    hostname: rabbit
+    deploy:
+      mode: replicated
+      replicas: 4
+      update_config:
+        failure_action: rollback
+        order: start-first
     ports:
       - "15673:15672"
-    networks:
-      test:
-        aliases:
-          - rabbitmq
-
-  rabbit2:
-#    image: "rabbitmq:3.8-alpine"
-    build:
-      context: "./"
-      dockerfile: Dockerfile-rabbitmq
-      target: rabbitmq-management
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
-      RABBITMQ_USE_LONGNAME: 'true'
-    networks:
-      test:
-        aliases:
-          - rabbitmq
-    command: rabbitmq-server -detached
+    cap_add:
+      - ALL
 networks:
   test:
-volumes:
-  rabbitmq:
-  rabbitmq2:

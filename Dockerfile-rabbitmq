@@ -1,21 +1,17 @@
 FROM rabbitmq:3.8-management-alpine as rabbitmq-management
 
-RUN set -eux ; \
-    apk add  --no-cache \
-    bind-tools
-
 COPY config/rabbitmq/ergonode-docker-entrypoint.sh /usr/local/bin/ergonode-docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/ergonode-docker-entrypoint.sh
 ENTRYPOINT ["ergonode-docker-entrypoint.sh"]
 CMD ["rabbitmq-server"]
 
-#FROM rabbitmq:3.8-alpine as rabbitmq
+FROM rabbitmq:3.8-alpine as rabbitmq
 
-#COPY ./config/rabbitmq/peer-discovery-dns.conf /etc/rabbitmq/rabbitmq.conf
+COPY config/rabbitmq/ergonode-docker-entrypoint.sh /usr/local/bin/ergonode-docker-entrypoint.sh
+RUN set -eux ; \
+    chmod +x /usr/local/bin/ergonode-docker-entrypoint.sh ; \
+    rabbitmq-plugins enable --offline rabbitmq_management_agent ; \
+    echo "management.tcp.port = 15672" >> /etc/rabbitmq/rabbitmq.conf
 
-#RUN set -eux ; \
-#    apk add  --no-cache \
-#    bind-tools
-
-
-#CMD bash -c "sleep 10 && rabbitmq-server"
+ENTRYPOINT ["ergonode-docker-entrypoint.sh"]
+CMD ["rabbitmq-server"]

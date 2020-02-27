@@ -1,52 +1,52 @@
 #!/bin/bash
 
-echo "$@"
-if [ "$1" = 'rabbitmq-server' ] ; then
-    #RABBITMQ_NODENAME=$(dig -x $(hostname -i) +short)
-    #RABBITMQ_NODENAME=${RABBITMQ_NODENAME%.*}
-    RABBITMQ_NODENAME="rabbit@$(dig -x $(hostname -i) +short)"
-    export RABBITMQ_NODENAME
-    echo "looooooooong name"
-    echo $RABBITMQ_NODENAME
-    docker-entrypoint.sh "$@"
-sleep 500
-#    rabbitmqctl cluster_status
-#    rabbitmqctl stop
-#    rabbitmqctl join_cluster rabbit@rabbitmq1
-#    dig +short rabbitmq
-#
+set -e
 
-    export RABBITMQ_NODENAME="rabbit@$(dig -x $(hostname -i) +short)"
-    rabbitmqctl stop_app
-    rabbitmqctl reset
-    for nodeIp in $(dig +short rabbitmq)
-    do
-       echo $nodeIp
-       nodeName="rabbit@$(dig -x $nodeIp +short)"
-       if [[ ${nodeName} != ${RABBITMQ_NODENAME} ]] ; then
-        echo ${nodeName}
-        echo ${RABBITMQ_NODENAME}
-        echo 1
-        rabbitmqctl join_cluster ${nodeName}
-       fi
-     done
-     rabbitmqctl start_app
-#    sleep 500
-#
-#
-#    kill $(jobs -p)
+hostname=$(hostname)
+RABBITMQ_NODENAME=${RABBITMQ_NODENAME:-rabbit}
 
-    tail -f /var/log/rabbitmq/*
+runUntil() {
+    startTime=$SECONDS
+    until "$@" ; do
+        exitCode=$?
+        sleep 2
+        elapsedTime=$(($SECONDS - $startTime))
+        if (( $elapsedTime > ${START_PERIOD:-300} )); then
+            exit ${exitCode}
+        fi
+    done
+}
 
+echo $hostname
+
+if [[ "$1" = 'rabbitmq-server' ]] ; then
+
+#    if [[ -z "$CLUSTER_WITH" || "$CLUSTER_WITH" == "$hostname" ]]; then
+#        >&2 echo "starting as main server"
+#        exec docker-entrypoint.sh "$@"
+#    else
+
+        function finish {
+            jobs=$(jobs -p)
+            if [[ -n ${jobs} ]] ; then
+                kill $(jobs -p)
+            fi
+        }
+        trap finish EXIT
+
+        export RABBITMQ_LOGS="/var/log/rabbitmq/rabbitmq.log"
+        docker-entrypoint.sh "$@" -detached
+
+        rabbitmqctl stop_app
+        echo "Joining to cluster $CLUSTER_WITH"
+
+        set +e
+        rabbitmqctl join_cluster ${ENABLE_RAM:+--ram} ${RABBITMQ_NODENAME}@${CLUSTER_WITH}
+        set -e
+        rabbitmqctl start_app
+
+        tail -f "${RABBITMQ_LOGS}"
+    #fi
 fi
 
 
-#ergonode_rabbit1_1.ergonode_test.
-
-rabbitmqctl stop_app
-rabbitmqctl reset
-
-#rabbitmqctl join_cluster rabbit@ergonode_rabbit1_1
-
-
-#rabbitmqctl join_cluster rabbit@ergonode_rabbit1_1.ergonode_test.
