@@ -1,0 +1,18 @@
+FROM rabbitmq:3.8-management-alpine as rabbitmq-management
+
+RUN set -eux ; \
+    apk add  --no-cache \
+    bind-tools
+
+#COPY ./config/rabbitmq/peer-discovery-dns.conf /etc/rabbitmq/rabbitmq.conf
+
+FROM rabbitmq:3.8-alpine as rabbitmq
+
+COPY ./config/rabbitmq/peer-discovery-dns.conf /etc/rabbitmq/rabbitmq.conf
+
+RUN set -eux ; \
+    apk add  --no-cache \
+    bind-tools
+
+
+CMD bash -c "sleep 10 && rabbitmq-server"

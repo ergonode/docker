@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+  rabbitmq-management:
+#    image: "rabbitmq:3.8-management-alpine"
+    build:
+      context: "./"
+      dockerfile: Dockerfile-rabbitmq
+      target: rabbitmq-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
+    ports:
+      - "15673:15672"
+    volumes:
+      - rabbitmq2:/var/lib/rabbitmq
+    networks:
+      test:
+        aliases:
+          - ergonode_test
+  rabbitmq-node:
+#    image: "rabbitmq:3.8-alpine"
+    build:
+      context: "./"
+      dockerfile: Dockerfile-rabbitmq
+      target: rabbitmq
+    environment:
+      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
+
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    networks:
+      test:
+        aliases:
+          - ergonode_test
+    command: bash -c "sleep 40 && rabbitmq-server"
+networks:
+  test:
+volumes:
+  rabbitmq:
+  rabbitmq2:
