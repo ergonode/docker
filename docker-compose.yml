@@ -1,23 +1,6 @@
 version: "3.7"
 services:
-#  rabbit-main:
-#    image: ${CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
-#    build:
-#      context: "./"
-#      dockerfile: Dockerfile-rabbitmq
-#      target: rabbitmq-management
-#    environment:
-#      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-#      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-#      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
-#    ports:
-#      - "15673:15672"
-#    networks:
-#      test:
-#    hostname: rabbit-main
-#    deploy:
-#      mode: global
-  rabbit2:
+  rabbitmq:
     image: ${CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
     build:
       context: "./"
@@ -27,10 +10,9 @@ services:
       RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-      CLUSTER_WITH: rabbit
+      CONSUL_HOST: 172.16.120.171
     networks:
       test:
-    hostname: rabbit
     deploy:
       mode: replicated
       replicas: 4
@@ -38,8 +20,12 @@ services:
         failure_action: rollback
         order: start-first
     ports:
-      - "15673:15672"
+      - 15672:15672
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
     cap_add:
       - ALL
 networks:
   test:
+volumes:
+  rabbitmq:
