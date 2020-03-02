@@ -1,47 +1,71 @@
+# example docker-compose for running images in production environment
+# All mandatory environment variables are required
 version: "3.7"
 x-rabbitmq:
   - &rabbitmq
-    image: rabbitmq:3.8-management-alpine
+    build:
+      context: "./"
+      target: rabbitmq-management
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
     environment:
       RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-    hostname: rabbitmq01
     networks:
-      test:
+      ergonode:
         aliases:
           - rabbitmq
     deploy:
       mode: global
       update_config:
         failure_action: rollback
-        order: start-first
-    configs:
-      - source: ergonode-docker-entrypoint
-        target: /usr/local/bin/ergonode-docker-entrypoint.sh
-        mode: 0755
-      - source: rabbitmq-healthcheck.sh
-        target: /usr/local/bin/rabbitmq-healthcheck.sh
-        mode: 0755
-    ports:
-      - 15672:15672
-    volumes:
-      - rabbitmq:/var/lib/rabbitmq
-    entrypoint: /usr/local/bin/ergonode-docker-entrypoint.sh
+        order: stop-first
     healthcheck:
       test: ["CMD", "bash", "-c", "/usr/local/bin/rabbitmq-healthcheck.sh"]
       start_period: 5m
 services:
-  rabbitmq:
+  consul:
+    image: consul:1.7
+    ports:
+      - 8500:8500
+    networks:
+      ergonode:
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl --fail http://localhost:8500 || exit 1"]
+  haproxy:
+    build:
+      context: "./"
+      target: haproxy
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/haproxy:${IMAGE_TAG:-latest}
+    deploy:
+      mode: global
+    ports:
+      - 15672:15672
+    restart: always
+    networks:
+      ergonode:
+  rabbitmq-01:
     <<: *rabbitmq
-configs:
-  rabbitmq.conf:
-    file: ./config/rabbitmq/rabbitmq.conf.template
-  ergonode-docker-entrypoint:
-    file: ./config/rabbitmq/ergonode-docker-entrypoint.sh
-  rabbitmq-healthcheck.sh:
-    file: ./config/rabbitmq/rabbitmq-healthcheck.sh
-networks:
-  test:
+    hostname: rabbitmq-01
+    volumes:
+      - rabbitmq-01:/var/lib/rabbitmq
+  rabbitmq-02:
+    <<: *rabbitmq
+    hostname: rabbitmq-02
+    volumes:
+      - rabbitmq-02:/var/lib/rabbitmq
+  rabbitmq-03:
+    <<: *rabbitmq
+    hostname: rabbitmq-03
+    volumes:
+      - rabbitmq-03:/var/lib/rabbitmq
 volumes:
-  rabbitmq:
+  ergonode-multimedia:
+  ergonode-import:
+  ergonode-jwt:
+  rabbitmq-01:
+  rabbitmq-02:
+  rabbitmq-03:
+networks:
+  ergonode:
+    attachable: true

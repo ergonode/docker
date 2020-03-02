@@ -223,13 +223,18 @@ HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/postgres-healthcheck.sh
 
 FROM rabbitmq:3.8-management-alpine as rabbitmq-management
 
-COPY config/rabbitmq/ergonode-docker-entrypoint.sh /usr/local/bin/ergonode-docker-entrypoint.sh
 COPY config/rabbitmq/rabbitmq-healthcheck.sh  /usr/local/bin/rabbitmq-healthcheck.sh
+COPY config/rabbitmq/rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
 RUN  set -eux; \
-    chmod +x /usr/local/bin/ergonode-docker-entrypoint.sh ; \
-    chmod +x /usr/local/bin/rabbitmq-healthcheck.sh
+    chmod +x /usr/local/bin/rabbitmq-healthcheck.sh ; \
+    rabbitmq-plugins enable --offline rabbitmq_peer_discovery_consul
+
 
 HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/rabbitmq-healthcheck.sh
 
-ENTRYPOINT ["ergonode-docker-entrypoint.sh"]
-CMD ["rabbitmq-server"]
+FROM haproxy:2.1-alpine as haproxy
+RUN set -eux ; \
+    apk add  --no-cache curl
+
+HEALTHCHECK --start-period=5m CMD sh  -c curl --fail http://localhost:15672 || exit 1
+COPY config/haproxy/haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
