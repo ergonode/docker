@@ -1,30 +1,46 @@
 version: "3.7"
-services:
-  rabbitmq:
-    image: ${CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
-    build:
-      context: "./"
-      dockerfile: Dockerfile-rabbitmq
-      target: rabbitmq-management
+x-rabbitmq:
+  - &rabbitmq
+    image: rabbitmq:3.8-management-alpine
     environment:
       RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-      CONSUL_HOST: 172.16.120.171
+    hostname: rabbitmq01
     networks:
       test:
+        aliases:
+          - rabbitmq
     deploy:
-      mode: replicated
-      replicas: 4
+      mode: global
       update_config:
         failure_action: rollback
         order: start-first
+    configs:
+      - source: ergonode-docker-entrypoint
+        target: /usr/local/bin/ergonode-docker-entrypoint.sh
+        mode: 0755
+      - source: rabbitmq-healthcheck.sh
+        target: /usr/local/bin/rabbitmq-healthcheck.sh
+        mode: 0755
     ports:
       - 15672:15672
     volumes:
       - rabbitmq:/var/lib/rabbitmq
-    cap_add:
-      - ALL
+    entrypoint: /usr/local/bin/ergonode-docker-entrypoint.sh
+    healthcheck:
+      test: ["CMD", "bash", "-c", "/usr/local/bin/rabbitmq-healthcheck.sh"]
+      start_period: 5m
+services:
+  rabbitmq:
+    <<: *rabbitmq
+configs:
+  rabbitmq.conf:
+    file: ./config/rabbitmq/rabbitmq.conf.template
+  ergonode-docker-entrypoint:
+    file: ./config/rabbitmq/ergonode-docker-entrypoint.sh
+  rabbitmq-healthcheck.sh:
+    file: ./config/rabbitmq/rabbitmq-healthcheck.sh
 networks:
   test:
 volumes:

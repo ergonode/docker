@@ -220,3 +220,16 @@ COPY ./config/postgres/ergonode-common-functions.sh /usr/local/bin/ergonode-comm
 RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
 
 HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/postgres-healthcheck.sh
+
+FROM rabbitmq:3.8-management-alpine as rabbitmq-management
+
+COPY config/rabbitmq/ergonode-docker-entrypoint.sh /usr/local/bin/ergonode-docker-entrypoint.sh
+COPY config/rabbitmq/rabbitmq-healthcheck.sh  /usr/local/bin/rabbitmq-healthcheck.sh
+RUN  set -eux; \
+    chmod +x /usr/local/bin/ergonode-docker-entrypoint.sh ; \
+    chmod +x /usr/local/bin/rabbitmq-healthcheck.sh
+
+HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/rabbitmq-healthcheck.sh
+
+ENTRYPOINT ["ergonode-docker-entrypoint.sh"]
+CMD ["rabbitmq-server"]

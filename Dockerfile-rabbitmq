@@ -2,13 +2,7 @@ FROM rabbitmq:3.8-management-alpine as rabbitmq-management
 
 COPY config/rabbitmq/ergonode-docker-entrypoint.sh /usr/local/bin/ergonode-docker-entrypoint.sh
 RUN  set -eux; \
-    chmod +x /usr/local/bin/ergonode-docker-entrypoint.sh ; \
-    rabbitmq-plugins enable --offline rabbitmq_peer_discovery_consul ; \
-    apk add --no-cache gettext \
-    bind-tools
-COPY ./config/rabbitmq/rabbitmq.conf.template /etc/rabbitmq/rabbitmq.conf.template
-
-
+    chmod +x /usr/local/bin/ergonode-docker-entrypoint.sh
 
 ENTRYPOINT ["ergonode-docker-entrypoint.sh"]
 CMD ["rabbitmq-server"]

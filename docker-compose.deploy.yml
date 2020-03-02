@@ -8,6 +8,7 @@ x-cache-from:
       - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
       - ${CONTAINER_REGISTRY_BASE:-ergonode}/nuxtjs:latest
       - ${CONTAINER_REGISTRY_BASE:-ergonode}/docsify:latest
+      - ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:latest
 services:
   php:
     build:
@@ -33,3 +34,9 @@ services:
       target: postgres
       <<: *ergonode-cache-from
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/postgres:${IMAGE_TAG:-latest}
+  rabbitmq:
+    build:
+      context: "./"
+      target: rabbitmq-management
+      <<: *ergonode-cache-from
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}

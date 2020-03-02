@@ -1,6 +1,27 @@
 # example docker-compose for running images in production environment
 # All mandatory environment variables are required
 version: "3.7"
+x-rabbitmq:
+  - &rabbitmq
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
+    environment:
+      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+    networks:
+      ergonode:
+        aliases:
+          - rabbitmq
+    deploy:
+      mode: global
+      update_config:
+        failure_action: rollback
+        order: stop-first
+    volumes:
+      - ergonode-rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "bash", "-c", "/usr/local/bin/rabbitmq-healthcheck.sh"]
+      start_period: 5m
 x-networks:
   - &ergonode-networks
     networks:
@@ -57,10 +78,26 @@ services:
     depends_on:
       - php
       - nuxtjs
+  rabbitmq01:
+    <<: *rabbitmq
+    hostname: rabbitmq01
+    ports:
+      - 15672:15672
+  rabbitmq02:
+    <<: *rabbitmq
+    hostname: rabbitmq02
+    environment:
+      CLUSTER_WITH: rabbitmq01
+      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+    depends_on:
+      - rabbitmq01
 volumes:
   ergonode-multimedia:
   ergonode-import:
   ergonode-jwt:
+  ergonode-rabbitmq:
 networks:
   ergonode:
     attachable: true
