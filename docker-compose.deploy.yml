@@ -40,3 +40,8 @@ services:
       target: rabbitmq-management
       <<: *ergonode-cache-from
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
+  haproxy:
+    build:
+      context: "./"
+      target: haproxy
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/haproxy:${IMAGE_TAG:-latest}

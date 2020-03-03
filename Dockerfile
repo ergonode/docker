@@ -236,5 +236,5 @@ FROM haproxy:2.1-alpine as haproxy
 RUN set -eux ; \
     apk add  --no-cache curl
 
-HEALTHCHECK --start-period=5m CMD sh  -c curl --fail http://localhost:15672 || exit 1
+#HEALTHCHECK --start-period=5m CMD sh  -c curl --fail http://localhost:15672 || exit 1
 COPY config/haproxy/haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
