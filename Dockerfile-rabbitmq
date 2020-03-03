@@ -1,9 +1,0 @@
-FROM rabbitmq:3.8-management-alpine as rabbitmq-management
-
-COPY config/rabbitmq/ergonode-docker-entrypoint.sh /usr/local/bin/ergonode-docker-entrypoint.sh
-RUN  set -eux; \
-    chmod +x /usr/local/bin/ergonode-docker-entrypoint.sh
-
-ENTRYPOINT ["ergonode-docker-entrypoint.sh"]
-CMD ["rabbitmq-server"]
-

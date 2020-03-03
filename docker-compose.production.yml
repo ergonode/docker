@@ -3,9 +3,6 @@
 version: "3.7"
 x-rabbitmq:
   - &rabbitmq
-    build:
-      context: "./"
-      target: rabbitmq-management
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
     environment:
       RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
@@ -20,9 +17,6 @@ x-rabbitmq:
       update_config:
         failure_action: rollback
         order: stop-first
-    healthcheck:
-      test: ["CMD", "bash", "-c", "/usr/local/bin/rabbitmq-healthcheck.sh"]
-      start_period: 5m
 x-networks:
   - &ergonode-networks
     networks:
@@ -35,7 +29,6 @@ x-deploy:
         order: start-first
 x-php-environment:
   - &php-environment
-    environment:
       APP_ENV: ${APP_ENV:-prod}
       APP_SECRET: ${APP_SECRET:?Missing mandatory value for APP_SECRET}
       DATABASE_URL: ${DATABASE_URL:?Missing mandatory value for DATABASE_URL}
@@ -49,16 +42,44 @@ x-php-environment:
       APP_URL: ${APP_URL:?Missing mandatory value for APP_URL}
       TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^localhost|example\.com$}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/messages}
+      MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/import}
+      MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/core}
+      MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/export}
+      MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
+      MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
+      MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
 services:
   php:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
-    <<: *php-environment
+    environment:
+      <<: *php-environment
     volumes:
       - "multimedia:/srv/app/public/mutimedia"
       - "import:/srv/app/import"
       - "jwt:/srv/app/config/jwt"
     <<: *ergonode-networks
     <<: *ergonode-deploy
+  php-messenger:
+    working_dir: /srv/app
+    image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+    volumes:
+      - ./backend:/srv/app
+    environment:
+      <<: *php-environment
+    depends_on:
+      - postgres
+      - haproxy
+    command: bin/console messenger:consume -vv import channel export core  event segment
+    restart: always
+    healthcheck:
+      disable: true
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+    <<: *ergonode-networks
   nuxtjs:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
     environment:
@@ -94,7 +115,10 @@ services:
       mode: global
     ports:
       - 15672:15672
-    <<: *ergonode-networks
+    networks:
+      ergonode:
+        aliases:
+          - rabbit
   rabbitmq-01:
     <<: *rabbitmq
     hostname: rabbitmq-01
