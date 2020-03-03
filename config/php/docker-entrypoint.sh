@@ -62,7 +62,7 @@ function waitUntil() {
   done
 }
 
-function createAmpgVhost() {
+function createAmqpVhost() {
     local scheme=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['scheme'];")
 
     if [[ "${scheme}" != 'amqp' ]] ; then
@@ -105,13 +105,13 @@ fi
 
 if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
 
-    createAmpgVhost "${MESSENGER_TRANSPORT_DSN}"
-    createAmpgVhost "${MESSENGER_TRANSPORT_IMPORT_DSN}"
-    createAmpgVhost "${MESSENGER_TRANSPORT_CORE_DSN}"
-    createAmpgVhost "${MESSENGER_TRANSPORT_EXPORT_DSN}"
-    createAmpgVhost "${MESSENGER_TRANSPORT_DOMAIN_DSN}"
-    createAmpgVhost "${MESSENGER_TRANSPORT_CHANNEL_DSN}"
-    createAmpgVhost "${MESSENGER_TRANSPORT_SEGMENT_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_IMPORT_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_CORE_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_EXPORT_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_DOMAIN_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_CHANNEL_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_SEGMENT_DSN}"
 
     bin/console messenger:setup-transports --no-interaction import
     bin/console messenger:setup-transports --no-interaction channel
