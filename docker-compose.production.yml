@@ -5,9 +5,9 @@ x-rabbitmq:
   - &rabbitmq
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
     environment:
-      RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Missing mandatory value for RABBITMQ_ERLANG_COOKIE}
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?Missing mandatory value for RABBITMQ_DEFAULT_PASS}
     networks:
       ergonode:
         aliases:
@@ -117,7 +117,7 @@ services:
     deploy:
       mode: global
     ports:
-      - 15672:15672
+      - "${EXPOSED_RABBITMQ_PORT:-15672}:15672"
     networks:
       ergonode:
         aliases:
