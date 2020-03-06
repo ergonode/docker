@@ -29,6 +29,9 @@ git clone git@github.com:ergonode/docs.git
 If you want to test ergonode in multiple directories you need to create the  `.env` file and set
 COMPOSE_PROJECT_NAME env var to some unique value
 
+If you want't change any environment variable you can optionally  change this in the `.env` file. 
+And all environment variables used by our docker you can find in the `docker-compose.yml` files.
+
 Now you can start start docker by simple command
 
 ```bash
@@ -143,11 +146,11 @@ A: No problem ! Just tell us about your idea and we will discuse it. Bring lot o
 
 ```
 Q: This is awesome, how can i thank you?
-A: No problem. Just send me an email to daniel.marynicz@strix.net and attach a beer
+A: No problem. Just send me an email to team@ergonode.com and attach a beer
 ```
 
 ```
 Q: This is bullshit, how can i thank you for this crap?
-A: No problem. Just send me an email to daniel.marynicz@strix.net but don't forget attach a beer
+A: No problem. Just send me an email to team@ergonode.com and attach a beer
 ```
 
