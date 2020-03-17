@@ -76,7 +76,7 @@ services:
     depends_on:
       - postgres
       - haproxy
-    command: bin/console messenger:consume -vv import channel export core  event segment
+    command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
     restart: always
     healthcheck:
       disable: true
