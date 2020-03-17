@@ -20,6 +20,8 @@ x-rabbitmq:
       update_config:
         failure_action: rollback
         order: stop-first
+    depends_on:
+      - consul
 x-networks:
   - &ergonode-networks
     networks:
@@ -58,7 +60,26 @@ x-php-volumes:
         - "multimedia:/srv/app/public/mutimedia"
         - "import:/srv/app/import"
         - "jwt:/srv/app/config/jwt"
-
+x-php-messenger:
+  - &php-messenger
+      working_dir: /srv/app
+      image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+      <<: *php-volumes
+      environment:
+        <<: *php-environment
+      depends_on:
+        - postgres
+        - haproxy
+      command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
+      restart: always
+      healthcheck:
+        disable: true
+      deploy:
+        replicas: 1
+        update_config:
+          failure_action: rollback
+          order: start-first
+<<: *ergonode-networks
 services:
   php:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
@@ -68,24 +89,7 @@ services:
     <<: *ergonode-networks
     <<: *ergonode-deploy
   php-messenger:
-    working_dir: /srv/app
-    image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
-    <<: *php-volumes
-    environment:
-      <<: *php-environment
-    depends_on:
-      - postgres
-      - haproxy
-    command: bin/console messenger:consume -vv import channel export core  event segment
-    restart: always
-    healthcheck:
-      disable: true
-    deploy:
-      replicas: 1
-      update_config:
-        failure_action: rollback
-        order: start-first
-    <<: *ergonode-networks
+    <<: *php-messenger
   nuxtjs:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
     environment:

@@ -13,6 +13,8 @@ x-rabbitmq:
             context: "./"
             target: rabbitmq-management
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:${IMAGE_TAG:-latest}
+        depends_on:
+            - consul
 x-cache-from:
     - &ergonode-cache-from
         cache_from:
@@ -38,6 +40,21 @@ x-php-environment:
         MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
         MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
         MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
+x-php-messenger:
+    - &php-messenger
+        working_dir: /srv/app
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+        volumes:
+            - ./backend:/srv/app
+        environment:
+            <<: *php-environment
+        depends_on:
+            - postgres
+            - haproxy
+        command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
+        restart: always
+        healthcheck:
+            disable: true
 services:
     postgres:
         build:
@@ -73,19 +90,7 @@ services:
             - postgres
         restart: always
     php-messenger:
-        working_dir: /srv/app
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
-        volumes:
-            - ./backend:/srv/app
-        environment:
-            <<: *php-environment
-        depends_on:
-            - postgres
-            - haproxy
-        command: bin/console messenger:consume -vv import channel export core  event segment
-        restart: always
-        healthcheck:
-            disable: true
+        <<: *php-messenger
     nginx:
         build:
             context: ./
