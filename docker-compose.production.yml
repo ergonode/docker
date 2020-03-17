@@ -1,13 +1,16 @@
 # example docker-compose for running images in production environment
 # All mandatory environment variables are required
 version: "3.7"
-x-rabbitmq:
-  - &rabbitmq
-    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
-    environment:
+x-rabbitmq-environment:
+  - &rabbitmq-environment
       RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Missing mandatory value for RABBITMQ_ERLANG_COOKIE}
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?Missing mandatory value for RABBITMQ_DEFAULT_PASS}
+      CONSUL_HOST: ${CONSUL_HOST:-consul}
+#       CONSUL_ACL_TOKEN: CONSUL_ACL_TOKEN
+x-rabbitmq:
+  - &rabbitmq
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
     networks:
       ergonode:
         aliases:
@@ -17,6 +20,8 @@ x-rabbitmq:
       update_config:
         failure_action: rollback
         order: stop-first
+    depends_on:
+      - consul
 x-networks:
   - &ergonode-networks
     networks:
@@ -55,7 +60,26 @@ x-php-volumes:
         - "multimedia:/srv/app/public/mutimedia"
         - "import:/srv/app/import"
         - "jwt:/srv/app/config/jwt"
-
+x-php-messenger:
+  - &php-messenger
+      working_dir: /srv/app
+      image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+      <<: *php-volumes
+      environment:
+        <<: *php-environment
+      depends_on:
+        - postgres
+        - haproxy
+      command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
+      restart: always
+      healthcheck:
+        disable: true
+      deploy:
+        replicas: 1
+        update_config:
+          failure_action: rollback
+          order: start-first
+<<: *ergonode-networks
 services:
   php:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
@@ -65,24 +89,7 @@ services:
     <<: *ergonode-networks
     <<: *ergonode-deploy
   php-messenger:
-    working_dir: /srv/app
-    image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
-    <<: *php-volumes
-    environment:
-      <<: *php-environment
-    depends_on:
-      - postgres
-      - haproxy
-    command: bin/console messenger:consume -vv import channel export core  event segment
-    restart: always
-    healthcheck:
-      disable: true
-    deploy:
-      replicas: 1
-      update_config:
-        failure_action: rollback
-        order: start-first
-    <<: *ergonode-networks
+    <<: *php-messenger
   nuxtjs:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
     environment:
@@ -127,16 +134,24 @@ services:
     hostname: rabbitmq-01
     volumes:
       - rabbitmq-01:/var/lib/rabbitmq
+    environment:
+      <<: *rabbitmq-environment
   rabbitmq-02:
     <<: *rabbitmq
     hostname: rabbitmq-02
     volumes:
       - rabbitmq-02:/var/lib/rabbitmq
+    environment:
+      <<: *rabbitmq-environment
+      WAIT_FOR: rabbitmq-01
   rabbitmq-03:
     <<: *rabbitmq
     hostname: rabbitmq-03
     volumes:
       - rabbitmq-03:/var/lib/rabbitmq
+    environment:
+      <<: *rabbitmq-environment
+      WAIT_FOR: rabbitmq-02
 volumes:
   multimedia:
   import:

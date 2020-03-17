@@ -1,15 +1,20 @@
 #docker-compose for development
 version: "3.7"
+x-rabbitmq-environment:
+    - &rabbitmq-environment
+        RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-cookie}
+        RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+        RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+        CONSUL_HOST: ${CONSUL_HOST:-consul}
+#       CONSUL_ACL_TOKEN: CONSUL_ACL_TOKEN
 x-rabbitmq:
     - &rabbitmq
         build:
             context: "./"
             target: rabbitmq-management
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:${IMAGE_TAG:-latest}
-        environment:
-            RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-cookie}
-            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+        depends_on:
+            - consul
 x-cache-from:
     - &ergonode-cache-from
         cache_from:
@@ -35,6 +40,21 @@ x-php-environment:
         MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
         MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
         MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
+x-php-messenger:
+    - &php-messenger
+        working_dir: /srv/app
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+        volumes:
+            - ./backend:/srv/app
+        environment:
+            <<: *php-environment
+        depends_on:
+            - postgres
+            - haproxy
+        command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
+        restart: always
+        healthcheck:
+            disable: true
 services:
     postgres:
         build:
@@ -70,19 +90,7 @@ services:
             - postgres
         restart: always
     php-messenger:
-        working_dir: /srv/app
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
-        volumes:
-            - ./backend:/srv/app
-        environment:
-            <<: *php-environment
-        depends_on:
-            - postgres
-            - haproxy
-        command: bin/console messenger:consume -vv import channel export core  event segment
-        restart: always
-        healthcheck:
-            disable: true
+        <<: *php-messenger
     nginx:
         build:
             context: ./
@@ -149,11 +157,19 @@ services:
     rabbitmq-01:
         <<: *rabbitmq
         hostname: rabbitmq-01
+        environment:
+            <<: *rabbitmq-environment
     rabbitmq-02:
         <<: *rabbitmq
         hostname: rabbitmq-02
+        environment:
+            <<: *rabbitmq-environment
+            WAIT_FOR: rabbitmq-01
     rabbitmq-03:
         <<: *rabbitmq
         hostname: rabbitmq-03
+        environment:
+            <<: *rabbitmq-environment
+            WAIT_FOR: rabbitmq-02
 networks:
     default:
