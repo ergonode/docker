@@ -15,22 +15,22 @@ This is only a development solution! Do not use it on production environments!
 
 At first you must install Docker and Docker Compose (https://docs.docker.com/compose).
 
-Next, you must clone frontend and backend and docs repositories to docker directory:
+Next, you must clone frontend and backend and docs repositories to ergonode directory:
 
 ```bash
-git clone git@github.com:ergonode/docker.git
-cd docker
+git clone git@github.com:ergonode/docker.git ergonode
+cd ergonode
 git clone git@github.com:ergonode/frontend.git
 git clone git@github.com:ergonode/backend.git
 git clone git@github.com:ergonode/docs.git
 ```
 
 
-
-
-
 If you want to test ergonode in multiple directories you need to create the  `.env` file and set
 COMPOSE_PROJECT_NAME env var to some unique value
+
+If you want't change any environment variable you can optionally  change this in the `.env` file. 
+And all environment variables used by our docker you can find in the `docker-compose.yml` files.
 
 Now you can start start docker by simple command
 
@@ -146,11 +146,11 @@ A: No problem ! Just tell us about your idea and we will discuse it. Bring lot o
 
 ```
 Q: This is awesome, how can i thank you?
-A: No problem. Just send me an email to daniel.marynicz@strix.net and attach a beer
+A: No problem. Just send me an email to team@ergonode.com and attach a beer
 ```
 
 ```
 Q: This is bullshit, how can i thank you for this crap?
-A: No problem. Just send me an email to daniel.marynicz@strix.net but don't forget attach a beer
+A: No problem. Just send me an email to team@ergonode.com and attach a beer
 ```
 
