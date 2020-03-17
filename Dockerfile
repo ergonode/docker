@@ -220,3 +220,20 @@ COPY ./config/postgres/ergonode-common-functions.sh /usr/local/bin/ergonode-comm
 RUN chmod +x /usr/local/bin/postgres-healthcheck.sh
 
 HEALTHCHECK --start-period=5m CMD bash -c /usr/local/bin/postgres-healthcheck.sh
+
+FROM rabbitmq:3.8-management-alpine as rabbitmq-management
+
+COPY config/rabbitmq/rabbitmq-healthcheck.sh  /usr/local/bin/rabbitmq-healthcheck.sh
+COPY config/rabbitmq/rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
+RUN  set -eux; \
+    chmod +x /usr/local/bin/rabbitmq-healthcheck.sh ; \
+    rabbitmq-plugins enable --offline rabbitmq_peer_discovery_consul
+
+
+HEALTHCHECK --start-period=2m CMD bash -c /usr/local/bin/rabbitmq-healthcheck.sh
+
+FROM haproxy:2.1-alpine as haproxy
+RUN set -eux ; \
+    apk add  --no-cache curl
+
+COPY config/haproxy/haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg

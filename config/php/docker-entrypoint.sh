@@ -62,6 +62,26 @@ function waitUntil() {
   done
 }
 
+function createAmqpVhost() {
+    local scheme=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['scheme'];")
+
+    if [[ "${scheme}" != 'amqp' ]] ; then
+        return 0
+    fi
+
+    local host=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['host'];")
+    #local port=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['port'];")
+    local port=15672
+    local user=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['user'];")
+    local pass=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['pass'];")
+    local path=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['path'];")
+    local vhost=$(echo $1 | php -r "echo (@explode('/', @parse_url(stream_get_contents(STDIN))['path']))[1];")
+
+    local  url="http://${host}:${port}/api/vhosts/${vhost}"
+    local  userPass="${user}:${pass}"
+    curl -u "${userPass}" --fail "${url}" ||  curl  --silent  --show-error  -u "${userPass}" --fail -X PUT "${url}"
+}
+
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
 	set -- php-fpm "$@"
@@ -81,6 +101,26 @@ if [ "$1" = 'php-fpm' ] || [[ "$1" =~ (vendor/)?bin/.* ]] || [ "$1" = 'composer'
 
     disableXdebug
     genereJwtKeysIfInvalid "${JWT_PRIVATE_KEY_PATH}" "${JWT_PUBLIC_KEY_PATH}" env:JWT_PASSPHRASE
+fi
+
+if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
+
+    createAmqpVhost "${MESSENGER_TRANSPORT_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_IMPORT_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_CORE_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_EXPORT_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_DOMAIN_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_CHANNEL_DSN}"
+    createAmqpVhost "${MESSENGER_TRANSPORT_SEGMENT_DSN}"
+
+    bin/console messenger:setup-transports --no-interaction import
+    bin/console messenger:setup-transports --no-interaction channel
+    bin/console messenger:setup-transports --no-interaction export
+    bin/console messenger:setup-transports --no-interaction core
+    bin/console messenger:setup-transports --no-interaction event
+    bin/console messenger:setup-transports --no-interaction segment
+
+    >&2 echo "messenger initialization finished"
 fi
 
 if [ "$1" = 'php-fpm' ] ; then
@@ -115,5 +155,7 @@ if [ "$1" = 'php-fpm' ] ; then
 
     >&2 echo "app initialization finished"
 fi
+
+
 
 exec docker-php-entrypoint "$@"

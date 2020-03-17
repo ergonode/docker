@@ -1,5 +1,15 @@
 #docker-compose for development
 version: "3.7"
+x-rabbitmq:
+    - &rabbitmq
+        build:
+            context: "./"
+            target: rabbitmq-management
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:${IMAGE_TAG:-latest}
+        environment:
+            RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-cookie}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
 x-cache-from:
     - &ergonode-cache-from
         cache_from:
@@ -7,6 +17,24 @@ x-cache-from:
             - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
             - ${CONTAINER_REGISTRY_BASE:-ergonode}/nuxtjs:latest
             - ${CONTAINER_REGISTRY_BASE:-ergonode}/docsify:latest
+            - ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:latest
+            - ${CONTAINER_REGISTRY_BASE:-ergonode}/haproxy:latest
+x-php-environment:
+    - &php-environment
+        XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_host=172.17.0.1}
+        PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-serverName=localhost}
+        APP_URL: ${APP_URL:-http://nginx}
+        JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
+        JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
+        JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
+        PHP_INI_DIRECTIVES: ${PHP_INI_DIRECTIVES:-upload_max_filesize=250M; post_max_size = 250M; memory_limit=256M}
+        MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/messages}
+        MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/import}
+        MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/core}
+        MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/export}
+        MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
+        MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
+        MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
 services:
     postgres:
         build:
@@ -36,20 +64,25 @@ services:
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
             - ./backend:/srv/app
-
         environment:
-            XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_host=172.17.0.1}
-            PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-serverName=localhost}
-            APP_URL: ${APP_URL:-http://nginx}
-            JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
-            JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
-            JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
-            PHP_INI_DIRECTIVES: ${PHP_INI_DIRECTIVES:-upload_max_filesize=250M; post_max_size = 250M; memory_limit=256M}
+            <<: *php-environment
         depends_on:
             - postgres
-        links:
-            - postgres
         restart: always
+    php-messenger:
+        working_dir: /srv/app
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+        volumes:
+            - ./backend:/srv/app
+        environment:
+            <<: *php-environment
+        depends_on:
+            - postgres
+            - haproxy
+        command: bin/console messenger:consume -vv import channel export core  event segment
+        restart: always
+        healthcheck:
+            disable: true
     nginx:
         build:
             context: ./
@@ -97,20 +130,30 @@ services:
         ports:
             - "${EXPOSED_DOCS_PORT:-8002}:3000"
         restart: always
-    rabbitmq:
-        image: "rabbitmq:3.8-management"
-        volumes:
-            - "./config/rabbitmq/rabbitmq-healthcheck.sh:/usr/local/bin/rabbitmq-healthcheck.sh"
+    consul:
+        image: consul:1.7
         healthcheck:
-            test: ["CMD", "bash", "-c", "/usr/local/bin/rabbitmq-healthcheck.sh"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 5s
-        restart: always
-        environment:
-            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+            test: ["CMD", "sh", "-c", "curl --fail http://localhost:8500 || exit 1"]
+    haproxy:
+        build:
+            context: "./"
+            target: haproxy
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/haproxy:${IMAGE_TAG:-latest}
         ports:
             - "${EXPOSED_RABBITMQ_PORT:-5672}:5672"
             - "${EXPOSED_RABBITMQ_WEB_PORT:-15672}:15672"
+        networks:
+            default:
+                aliases:
+                    - rabbit
+    rabbitmq-01:
+        <<: *rabbitmq
+        hostname: rabbitmq-01
+    rabbitmq-02:
+        <<: *rabbitmq
+        hostname: rabbitmq-02
+    rabbitmq-03:
+        <<: *rabbitmq
+        hostname: rabbitmq-03
+networks:
+    default:
