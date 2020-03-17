@@ -1,16 +1,18 @@
 #docker-compose for development
 version: "3.7"
+x-rabbitmq-environment:
+    - &rabbitmq-environment
+        RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-cookie}
+        RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+        RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
+        CONSUL_HOST: ${CONSUL_HOST:-consul}
+#       CONSUL_ACL_TOKEN: CONSUL_ACL_TOKEN
 x-rabbitmq:
     - &rabbitmq
         build:
             context: "./"
             target: rabbitmq-management
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:${IMAGE_TAG:-latest}
-        environment:
-            RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-cookie}
-            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-            CONSUL_HOST: ${CONSUL_HOST:-consul}
 x-cache-from:
     - &ergonode-cache-from
         cache_from:
@@ -150,14 +152,19 @@ services:
     rabbitmq-01:
         <<: *rabbitmq
         hostname: rabbitmq-01
-        command: bash -c "sleep 20; rabbitmq-server"
+        environment:
+            <<: *rabbitmq-environment
     rabbitmq-02:
         <<: *rabbitmq
         hostname: rabbitmq-02
-        command: bash -c "sleep 40; rabbitmq-server"
+        environment:
+            <<: *rabbitmq-environment
+            WAIT_FOR: rabbitmq-01
     rabbitmq-03:
         <<: *rabbitmq
         hostname: rabbitmq-03
-        command: bash -c "sleep 60; rabbitmq-server"
+        environment:
+            <<: *rabbitmq-environment
+            WAIT_FOR: rabbitmq-02
 networks:
     default:
