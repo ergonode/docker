@@ -1,12 +1,12 @@
 #!/bin/bash
 
 if [ "$1" = 'npm' ] ; then
-  if [ "$APP_ENV" != 'prod' ]; then
+  if [ "$NODE_ENV" != 'production' ]; then
     npm install
-  fi
-
-  if [[ ! -f ".env" ]] && [ "$APP_ENV" != 'prod' ]; then
-    cp .env.dist .env
+    if [[ ! -f ".env" ]] ; then
+        cp .env.dist .env
+    fi
+     #npm run modules:all
   fi
 
   if [ "$1" = 'npm' ]  && [ "$2" = 'run' ] && [ "$3" = 'start' ]; then
