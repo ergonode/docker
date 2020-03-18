@@ -186,7 +186,7 @@ COPY frontend /srv/app/
 
 RUN  set -eux; \
     npm install ; \
-    npm run modules:all ; \
+    # npm run modules:all ; \
     NODE_ENV=production API_BASE_URL=http://localhost:8000/api/v1/ npm run build ; \
     #clean up
     npm cache clean -f ; \

@@ -52,7 +52,6 @@ x-php-messenger:
             - postgres
             - haproxy
         command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
-        restart: always
         healthcheck:
             disable: true
 services:
@@ -74,7 +73,6 @@ services:
             APP_TEST_DB: ${APP_TEST_DB:-ergonode_test}
         ports:
             - "${EXPOSED_POSTGRES_PORT:-5432}:5432"
-        restart: always
     php:
         build:
             context: "./"
@@ -88,7 +86,6 @@ services:
             <<: *php-environment
         depends_on:
             - postgres
-        restart: always
     php-messenger:
         <<: *php-messenger
     nginx:
@@ -108,13 +105,12 @@ services:
             - "${EXPOSED_NGINX_PORT:-8000}:80"
         depends_on:
             - php
-        restart: always
     nuxtjs:
         build:
             context: "./"
             target: nuxtjs
             <<: *ergonode-cache-from
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/node:${IMAGE_TAG:-latest}
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/nuxtjs:${IMAGE_TAG:-latest}
         working_dir: /srv/app
         volumes:
             - "./frontend:/srv/app"
@@ -123,13 +119,10 @@ services:
         environment:
             EXPOSED_NODE_PORT: ${EXPOSED_NODE_PORT:-80}
             API_BASE_URL: ${API_BASE_URL:-http://localhost:8000/api/v1/}
-        restart: always
     docsify:
         build:
             context: "./"
             target: docsify
-            cache_from:
-                - ${CONTAINER_REGISTRY_BASE:-ergonode}/docs:latest
             <<: *ergonode-cache-from
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/docs:${IMAGE_TAG:-latest}
         working_dir: /srv/app
@@ -137,7 +130,6 @@ services:
             - "./docs:/srv/app"
         ports:
             - "${EXPOSED_DOCS_PORT:-8002}:3000"
-        restart: always
     consul:
         image: consul:1.7
         healthcheck:
