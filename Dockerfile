@@ -165,7 +165,8 @@ RUN  set -eux; \
     chmod +x /usr/local/bin/docker-entrypoint ; \
     apk add  --no-cache \
     curl \
-    bash
+    bash \
+    git
 
 
 ENTRYPOINT ["docker-entrypoint"]
