@@ -18,6 +18,10 @@ then
 fi
 
 
+if [[ ! -z "${RABBITMQ_ERLANG_COOKIE}" ]] ;
+then
+    echo "${RABBITMQ_ERLANG_COOKIE}" > "${RABBITMQ_DATA_DIR}/.erlang.cookie"
+fi
 
 >&2 echo "Waiting for consul..."
 waitUntil ping -c 1 "${CONSUL_HOST}"
