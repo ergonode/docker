@@ -6,7 +6,7 @@ if [ "$1" = 'npm' ] ; then
     if [[ ! -f ".env" ]] ; then
         cp .env.dist .env
     fi
-     #npm run modules:all
+     npm run modules:all
   fi
 
   if [ "$1" = 'npm' ]  && [ "$2" = 'run' ] && [ "$3" = 'start' ]; then
