@@ -51,7 +51,7 @@ x-php-messenger:
         depends_on:
             - postgres
             - haproxy
-        command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import channel export core  event segment
         healthcheck:
             disable: true
 services:
@@ -86,8 +86,24 @@ services:
             <<: *php-environment
         depends_on:
             - postgres
-    php-messenger:
+    php-messenger-import:
         <<: *php-messenger
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import
+    php-messenger-channel:
+        <<: *php-messenger
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv channel
+    php-messenger-export:
+        <<: *php-messenger
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv export
+    php-messenger-core:
+        <<: *php-messenger
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv core
+    php-messenger-event:
+        <<: *php-messenger
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv event
+    php-messenger-segment:
+        <<: *php-messenger
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv segment
     nginx:
         build:
             context: ./

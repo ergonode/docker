@@ -88,8 +88,54 @@ services:
     <<: *php-volumes
     <<: *ergonode-networks
     <<: *ergonode-deploy
-  php-messenger:
+  php-messenger-import:
     <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+  php-messenger-channel:
+    <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv channel
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+  php-messenger-export:
+    <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv export
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+  php-messenger-core:
+    <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv core
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+  php-messenger-event:
+    <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv event
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+  php-messenger-segment:
+    <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv segment
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
   nuxtjs:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
     environment:
