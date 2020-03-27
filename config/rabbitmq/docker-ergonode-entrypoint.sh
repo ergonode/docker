@@ -26,7 +26,7 @@ fi
 >&2 echo "Waiting for consul..."
 waitUntil ping -c 1 "${CONSUL_HOST}"
 
-if [[ ! -z "${WAIT_FOR}" ]] ;
+if [[ ! -z "${WAIT_FOR}" ]]  && [[ ! -d "${RABBITMQ_DATA_DIR}/mnesia" ]];
 then
     >&2 echo "Waiting for ${WAIT_FOR}..."
     waitUntil ping -c 1 "${WAIT_FOR}"
