@@ -79,7 +79,7 @@ x-php-messenger:
         update_config:
           failure_action: rollback
           order: start-first
-<<: *ergonode-networks
+      <<: *ergonode-networks
 services:
   php:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
