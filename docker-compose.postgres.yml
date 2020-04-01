@@ -6,6 +6,7 @@ x-networks:
 x-deploy:
   - &ergonode-deploy
     deploy:
+      mode: global
       update_config:
         failure_action: rollback
         order: start-first

@@ -27,7 +27,12 @@
    ```
 4. Build with command
    ```bash
-   docker-compose  -f docker-compose.deploy.yml  build --parallel
+   docker-compose  -f docker-compose.deploy.yml  build
+   ```
+   
+   or faster build with enabled BuildKit
+   ```
+   COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose  -f docker-compose.deploy.yml  build
    ```
 
 ## Test you images
@@ -99,10 +104,21 @@ docker-compose  -f docker-compose.deploy.yml  push
     $ env $(cat .env | grep ^[a-zA-Z] | xargs) docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
    
     Creating network ergonode_ergonode
-    Creating service ergonode_nuxtjs
+    Creating service ergonode_php-messenger-event
+    Creating service ergonode_php-messenger-export
+    Creating service ergonode_rabbitmq-02
+    Creating service ergonode_php-messenger-core
     Creating service ergonode_php
-    Creating service ergonode_postgres
     Creating service ergonode_nginx
+    Creating service ergonode_php-messenger-channel
+    Creating service ergonode_php-messenger-import
+    Creating service ergonode_postgres
+    Creating service ergonode_rabbitmq-01
+    Creating service ergonode_consul
+    Creating service ergonode_nuxtjs
+    Creating service ergonode_php-messenger-segment
+    Creating service ergonode_rabbitmq-03
+    Creating service ergonode_haproxy
    ```
 
     If  You have managed PostgreSQL by your provider you can skip option `--compose-file docker-compose.postgres.yml`
