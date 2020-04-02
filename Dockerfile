@@ -111,7 +111,7 @@ RUN set -eux; \
 	composer dump-env prod; \
     composer run-script post-install-cmd; \
 	bin/console cache:clear --env=prod --no-debug ; \
-	bin/console cache:clear --env=dev
+	php -d memory_limit=256M bin/console cache:clear --env=dev
 
 FROM php as php_production
 	# do not use .env  in production
