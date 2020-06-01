@@ -39,7 +39,10 @@ RUN set -eux ; \
         make \
         pkgconf \
         file \
-        curl-dev; \
+        curl-dev \
+        libpng \
+        libpng-dev \
+        imagemagick-dev ; \
     docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
@@ -48,10 +51,17 @@ RUN set -eux ; \
     curl ; \
     pecl install amqp ; \
     pecl install xdebug; \
+    pecl install imagick ; \
+    docker-php-ext-install gd ; \
+    docker-php-ext-install exif ; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable opcache ; \
     docker-php-ext-enable xdebug ; \
     docker-php-ext-enable curl ; \
+    docker-php-ext-enable imagick ; \
+    docker-php-ext-enable gd ; \
+    docker-php-ext-enable exif ; \
+
     echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
     echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
