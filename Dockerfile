@@ -27,7 +27,11 @@ RUN set -eux ; \
         bash \
         libcurl \
         gettext \
-        gnu-libiconv ; \
+        gnu-libiconv  \
+        curl-dev \
+        libpng \
+        libpng-dev \
+        imagemagick-dev ; \
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \
         postgresql-dev \
@@ -38,8 +42,7 @@ RUN set -eux ; \
         g++ \
         make \
         pkgconf \
-        file \
-        curl-dev; \
+        file ;\
     docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
@@ -48,10 +51,17 @@ RUN set -eux ; \
     curl ; \
     pecl install amqp ; \
     pecl install xdebug; \
+    pecl install imagick ; \
+    docker-php-ext-install gd ; \
+    docker-php-ext-install exif ; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable opcache ; \
     docker-php-ext-enable xdebug ; \
     docker-php-ext-enable curl ; \
+    docker-php-ext-enable imagick ; \
+    docker-php-ext-enable gd ; \
+    docker-php-ext-enable exif ; \
+
     echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
     echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
