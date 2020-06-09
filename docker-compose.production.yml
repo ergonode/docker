@@ -59,6 +59,7 @@ x-php-volumes:
       volumes:
         - "multimedia:/srv/app/public/mutimedia"
         - "import:/srv/app/import"
+        - "export:/srv/app/export"
         - "jwt:/srv/app/config/jwt"
 x-php-messenger:
   - &php-messenger
@@ -201,6 +202,7 @@ services:
 volumes:
   multimedia:
   import:
+  export:
   jwt:
   rabbitmq-01:
   rabbitmq-02:
