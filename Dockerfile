@@ -92,7 +92,7 @@ COPY  backend/composer.json \
 
 RUN set -eux; \
 	composer install --prefer-dist --no-autoloader --no-scripts --no-progress --no-suggest; \
-	mkdir -p config/jwt var/cache var/log import public/multimedia; \
+	mkdir -p config/jwt var/cache var/log import export public/multimedia; \
 	composer clear-cache
 
 COPY backend/bin bin/
