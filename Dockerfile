@@ -14,6 +14,7 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # required packages and PHP extensionns
 RUN set -eux ; \
+    # Non dev packages
     apk add  --no-cache git  \
         zip \
         unzip \
@@ -27,7 +28,10 @@ RUN set -eux ; \
         bash \
         libcurl \
         gettext \
-        gnu-libiconv ; \
+        gnu-libiconv \
+        libpng \
+        imagemagick; \
+    # dev packages
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \
         postgresql-dev \
@@ -39,7 +43,9 @@ RUN set -eux ; \
         make \
         pkgconf \
         file \
-        curl-dev; \
+        curl-dev \
+        libpng-dev \
+        imagemagick-dev; \
     docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
