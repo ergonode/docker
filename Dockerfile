@@ -52,10 +52,12 @@ RUN set -eux ; \
     intl \
     pcntl  \
     curl \
+    gd \
     exif ; \
     pecl install amqp ; \
     pecl install xdebug; \
     pecl install imagick ; \
+    docker-php-ext enable gd ; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable opcache ; \
     docker-php-ext-enable xdebug ; \
