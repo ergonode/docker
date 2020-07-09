@@ -30,7 +30,6 @@ RUN set -eux ; \
         gettext \
         gnu-libiconv \
         libpng \
-	libpng \
         libjpeg \
         freetype \
         libwebp \
@@ -49,7 +48,6 @@ RUN set -eux ; \
         file \
         curl-dev \
         libpng-dev \
-	libpng-dev \
         jpeg-dev \ 
         freetype-dev \
 	libwebp-dev \
