@@ -30,6 +30,10 @@ RUN set -eux ; \
         gettext \
         gnu-libiconv \
         libpng \
+	libpng \
+        libjpeg \
+        freetype \
+        libwebp \
         imagemagick; \
     # dev packages
     apk add --no-cache --virtual .fetch-deps \
@@ -45,6 +49,11 @@ RUN set -eux ; \
         file \
         curl-dev \
         libpng-dev \
+	libpng-dev \
+        jpeg-dev \ 
+        freetype-dev \
+	libwebp-dev \
+	libzip-dev \
         imagemagick-dev; \
     docker-php-ext-install -j$(nproc) \
     pdo  \
@@ -57,6 +66,11 @@ RUN set -eux ; \
     pecl install amqp ; \
     pecl install xdebug; \
     pecl install imagick ; \
+    docker-php-ext-configure gd   \
+    --with-webp \
+    --with-jpeg \
+    --with-xpm \
+    --with-freetype ; \
     docker-php-ext enable gd ; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable opcache ; \
