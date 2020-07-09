@@ -50,8 +50,8 @@ RUN set -eux ; \
         libpng-dev \
         jpeg-dev \ 
         freetype-dev \
-	libwebp-dev \
-	libzip-dev \
+        libwebp-dev \
+        libzip-dev \
         imagemagick-dev; \
     docker-php-ext-configure gd   \
     --with-webp \
