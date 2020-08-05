@@ -33,7 +33,8 @@ RUN set -eux ; \
         libjpeg \
         freetype \
         libwebp \
-        imagemagick; \
+        imagemagick \
+        libxpm ; \
     # dev packages
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \
@@ -48,11 +49,12 @@ RUN set -eux ; \
         file \
         curl-dev \
         libpng-dev \
-        jpeg-dev \ 
+        jpeg-dev \
         freetype-dev \
         libwebp-dev \
         libzip-dev \
-        imagemagick-dev; \
+        imagemagick-dev \
+        libxpm-dev ; \
     docker-php-ext-configure gd   \
     --with-webp \
     --with-jpeg \
@@ -63,19 +65,16 @@ RUN set -eux ; \
     pdo_pgsql \
     intl \
     pcntl  \
-    curl \
     gd \
-    exif ; \
+    exif  \
+    zip  \
+    opcache ; \
     pecl install amqp ; \
     pecl install xdebug; \
     pecl install imagick ; \
-    docker-php-ext enable gd ; \
     docker-php-ext-enable amqp ; \
-    docker-php-ext-enable opcache ; \
     docker-php-ext-enable xdebug ; \
-    docker-php-ext-enable curl ; \
     docker-php-ext-enable imagick ; \
-    docker-php-ext-enable exif ; \
     echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
     echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
