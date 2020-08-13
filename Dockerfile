@@ -34,7 +34,8 @@ RUN set -eux ; \
         freetype \
         libwebp \
         imagemagick \
-        libxpm ; \
+        libxpm \
+        libzip ; \
     # dev packages
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \
