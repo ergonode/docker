@@ -104,6 +104,9 @@ services:
     php-messenger-segment:
         <<: *php-messenger
         command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv segment
+    php-messenger-completeness:
+        <<: *php-messenger
+        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv completeness
     nginx:
         build:
             context: ./
