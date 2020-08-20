@@ -57,7 +57,8 @@ x-php-environment:
 x-php-volumes:
   - &php-volumes
       volumes:
-        - "multimedia:/srv/app/public/mutimedia"
+        - "multimedia:/srv/app/public/multimedia"
+        - "avatar:/srv/app/public/avatar"
         - "import:/srv/app/import"
         - "export:/srv/app/export"
         - "jwt:/srv/app/config/jwt"
@@ -152,7 +153,8 @@ services:
       NUXTJS_HOST: ${PHP_HOST:-nuxtjs}
       DOLLAR: "$$"
     volumes:
-      - "multimedia:/srv/app/public/mutimedia"
+      - "multimedia:/srv/app/public/multimedia"
+      - "avatar:/srv/app/public/avatar"
     ports:
       - "${EXPOSED_NGINX_PORT:-80}:80"
     <<: *ergonode-networks
@@ -201,6 +203,7 @@ services:
       WAIT_FOR: rabbitmq-02
 volumes:
   multimedia:
+  avatar:
   import:
   export:
   jwt:
