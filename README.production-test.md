@@ -312,6 +312,7 @@ For testing you need setup local registry.
    Are you sure you want to continue? [y/N] y
    Deleted Volumes:
    ergonode_multimedia
+   ergonode_avatar
    ergonode_import
    ergonode_jwt
    ergonode_ergonode-postgres-data

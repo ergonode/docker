@@ -116,7 +116,7 @@ COPY  backend/composer.json \
 
 RUN set -eux; \
 	composer install --prefer-dist --no-autoloader --no-scripts --no-progress --no-suggest; \
-	mkdir -p config/jwt var/cache var/log import export public/multimedia; \
+	mkdir -p config/jwt var/cache var/log import export public/multimedia public/thumbnail public/avatar; \
 	composer clear-cache
 
 COPY backend/bin bin/
