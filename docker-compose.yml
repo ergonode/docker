@@ -62,7 +62,7 @@ services:
             <<: *ergonode-cache-from
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/postgres:${IMAGE_TAG:-latest}
         volumes:
-            - "./data/.postgres:/var/lib/postgresql/data"
+            - "./data/.postgres:/var/lib/postgresql/data:delegated"
         environment:
             POSTGRES_USER: ${POSTGRES_USER:-postgres}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123}
@@ -81,7 +81,7 @@ services:
         working_dir: /srv/app
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
-            - ./backend:/srv/app
+            - ./backend:/srv/app:cached
         environment:
             <<: *php-environment
         depends_on:
