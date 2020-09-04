@@ -190,7 +190,7 @@ if [ "$1" = 'crond' ] ; then
     # * * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log ; * * * * * /srv/app/bin/console some:other:cmd >> /srv/app/var/log/crond.log
 
     echo  "${CRONTAB:-* * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log}"  | sed "s~;\s*~\n~g" > /tmp/cron.install
-    su -s /bin/bash www-data -c 'cat /tmp/cron.install |  crontab'
+    su -s /bin/bash www-data -c 'cat /tmp/cron.install | crontab -'
     rm -f /tmp/cron.install
     >&2 echo "installed crontab"
     su -s /bin/bash www-data -c 'crontab -l'

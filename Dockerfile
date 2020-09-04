@@ -36,7 +36,6 @@ RUN set -eux ; \
         imagemagick \
         libxpm \
         libzip  \
-        dcron \
         busybox-suid ; \
     # dev packages
     apk add --no-cache --virtual .fetch-deps \
