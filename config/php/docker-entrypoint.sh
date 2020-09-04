@@ -163,6 +163,7 @@ if [ "$1" = 'php-fpm' ] ; then
 fi
 
 if [ "$1" = 'crond' ] ; then
+    mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar import export
     >&2 echo "Setting file permissions..."
     setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
@@ -185,13 +186,12 @@ if [ "$1" = 'crond' ] ; then
     }
     trap finish EXIT
 
-
-    su -s /bin/bash www-data -c ""
     # each enty for CRONTAB must be delimited by ; example:
     # * * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log ; * * * * * /srv/app/bin/console some:other:cmd >> /srv/app/var/log/crond.log
 
     echo  "${CRONTAB:-* * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log}"  | sed "s~;\s*~\n~g" > /tmp/cron.install
     su -s /bin/bash www-data -c 'cat /tmp/cron.install |  crontab'
+    rm -f /tmp/cron.install
     >&2 echo "installed crontab"
     su -s /bin/bash www-data -c 'crontab -l'
     su -s /bin/bash www-data -c "touch /srv/app/var/log/crond.log"
