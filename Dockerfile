@@ -35,7 +35,9 @@ RUN set -eux ; \
         libwebp \
         imagemagick \
         libxpm \
-        libzip ; \
+        libzip  \
+        dcron \
+        busybox-suid ; \
     # dev packages
     apk add --no-cache --virtual .fetch-deps \
         icu-dev \

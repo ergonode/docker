@@ -162,6 +162,45 @@ if [ "$1" = 'php-fpm' ] ; then
     >&2 echo "app initialization finished"
 fi
 
+if [ "$1" = 'crond' ] ; then
+    >&2 echo "Setting file permissions..."
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX import
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX import
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX export
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX export
+
+    function finish {
+      jobs=$(jobs -p)
+      if [[ -n ${jobs} ]] ; then
+        kill $(jobs -p)
+      fi
+    }
+    trap finish EXIT
 
 
-exec docker-php-entrypoint "$@"
+    su -s /bin/bash www-data -c ""
+    # each enty for CRONTAB must be delimited by ; example:
+    # * * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log ; * * * * * /srv/app/bin/console some:other:cmd >> /srv/app/var/log/crond.log
+
+    echo  "${CRONTAB:-* * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log}"  | sed "s~;\s*~\n~g" > /tmp/cron.install
+    su -s /bin/bash www-data -c 'cat /tmp/cron.install |  crontab'
+    >&2 echo "installed crontab"
+    su -s /bin/bash www-data -c 'crontab -l'
+    su -s /bin/bash www-data -c "touch /srv/app/var/log/crond.log"
+    crond -f &
+    tail -f /srv/app/var/log/crond.log
+
+else
+  exec docker-php-entrypoint "$@"
+fi
+
+
+

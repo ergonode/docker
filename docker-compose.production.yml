@@ -54,6 +54,9 @@ x-php-environment:
       MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
       MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
       MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
+      # each enty for CRONTAB must be delimited by ; example:
+      # * * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log ; * * * * * /srv/app/bin/console some:other:cmd >> /srv/app/var/log/crond.log
+      CRONTAB: ${CRONTAB:-* * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log}
 x-php-volumes:
   - &php-volumes
       volumes:
@@ -90,6 +93,18 @@ services:
     <<: *php-volumes
     <<: *ergonode-networks
     <<: *ergonode-deploy
+  crond:
+    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/php:${IMAGE_TAG:-latest}
+    environment:
+      <<: *php-environment
+    <<: *php-volumes
+    <<: *ergonode-networks
+    command: ["crond"]
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
   php-messenger-import:
     <<: *php-messenger
     command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import
