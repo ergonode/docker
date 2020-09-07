@@ -62,6 +62,32 @@ function waitUntil() {
   done
 }
 
+function setPermissions()
+{
+  mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar import export
+  >&2 echo "Setting file permissions..."
+  if setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var ; then
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX import
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX import
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX export
+    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX export
+   else
+      chown -R www-data var
+      chown -R www-data public/multimedia
+      chown -R www-data public/thumbnail
+      chown -R www-data public/avatar
+      chown -R www-data import
+      chown -R www-data export
+   fi
+}
+
 function createAmqpVhost() {
     local scheme=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['scheme'];")
 
@@ -124,22 +150,7 @@ if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
 fi
 
 if [ "$1" = 'php-fpm' ] ; then
-    mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar import export
-    >&2 echo "Setting file permissions..."
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX import
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX import
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX export
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX export
-
-
+    setPermissions
 
     if [ "$APP_ENV" != 'prod' ]; then
         composer install --prefer-dist --no-progress --no-suggest --no-interaction
@@ -163,20 +174,7 @@ if [ "$1" = 'php-fpm' ] ; then
 fi
 
 if [ "$1" = 'crond' ] ; then
-    mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar import export
-    >&2 echo "Setting file permissions..."
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX import
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX import
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX export
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX export
+    setPermissions
 
     function finish {
       jobs=$(jobs -p)
