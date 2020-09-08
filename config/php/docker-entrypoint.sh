@@ -62,11 +62,12 @@ function waitUntil() {
   done
 }
 
-function setPermissions()
+function createApplicationDirs()
 {
   mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar import export
   >&2 echo "Setting file permissions..."
-  if setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var ; then
+  if setfacl -m u:www-data:rwX -m u:"$(whoami)":rwX var ; then
+    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
     setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
@@ -150,7 +151,7 @@ if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
 fi
 
 if [ "$1" = 'php-fpm' ] ; then
-    setPermissions
+    createApplicationDirs
 
     if [ "$APP_ENV" != 'prod' ]; then
         composer install --prefer-dist --no-progress --no-suggest --no-interaction
@@ -174,7 +175,7 @@ if [ "$1" = 'php-fpm' ] ; then
 fi
 
 if [ "$1" = 'crond' ] ; then
-    setPermissions
+    createApplicationDirs
 
     function finish {
       jobs=$(jobs -p)
