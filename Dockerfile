@@ -76,8 +76,6 @@ RUN set -eux ; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable xdebug ; \
     docker-php-ext-enable imagick ; \
-    echo "xdebug.remote_enable = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
-    echo "xdebug.remote_connect_back = 1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
