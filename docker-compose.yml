@@ -86,6 +86,18 @@ services:
             <<: *php-environment
         depends_on:
             - postgres
+    crond:
+        build:
+            context: "./"
+            target: php
+            <<: *ergonode-cache-from
+        working_dir: /srv/app
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+        volumes:
+            - ./backend:/srv/app:cached
+        environment:
+            <<: *php-environment
+        command: ["crond"]
     php-messenger-import:
         <<: *php-messenger
         command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import
