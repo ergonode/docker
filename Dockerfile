@@ -75,7 +75,7 @@ RUN set -eux ; \
     pecl install imagick ; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable xdebug ; \
-    docker-php-ext-enable imagick ; \
+    docker-php-ext-enable imagick
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
