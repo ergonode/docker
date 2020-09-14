@@ -26,7 +26,7 @@ x-cache-from:
             - ${CONTAINER_REGISTRY_BASE:-ergonode}/haproxy:latest
 x-php-environment:
     - &php-environment
-        XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_host=172.17.0.1}
+        XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_enable=1 remote_connect_back=1}
         PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-serverName=localhost}
         APP_URL: ${APP_URL:-http://nginx}
         JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
@@ -87,6 +87,18 @@ services:
         depends_on:
             - postgres
             - mailhog
+    crond:
+        build:
+            context: "./"
+            target: php
+            <<: *ergonode-cache-from
+        working_dir: /srv/app
+        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+        volumes:
+            - ./backend:/srv/app:cached
+        environment:
+            <<: *php-environment
+        command: ["crond"]
     php-messenger-import:
         <<: *php-messenger
         command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import
