@@ -174,7 +174,7 @@ COPY --from=php /srv/app/public /srv/app/public
 
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
-HEALTHCHECK --start-period=5m CMD curl --fail http://localhost/api/doc || exit 1
+HEALTHCHECK --start-period=5m CMD curl --fail http://localhost/healthcheck.json || exit 1
 
 ENV NGINX_HTTP_DIRECTIVES="client_max_body_size 250m;"
 
