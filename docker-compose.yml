@@ -87,7 +87,6 @@ services:
             <<: *php-environment
         depends_on:
             - postgres
-            - mailhog
     crond:
         build:
             context: "./"
