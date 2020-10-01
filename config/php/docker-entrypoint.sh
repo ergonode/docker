@@ -146,6 +146,7 @@ if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
     bin/console messenger:setup-transports --no-interaction core
     bin/console messenger:setup-transports --no-interaction event
     bin/console messenger:setup-transports --no-interaction segment
+    bin/console messenger:setup-transports --no-interaction completeness
 
     >&2 echo "messenger initialization finished"
 fi
