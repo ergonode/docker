@@ -33,13 +33,13 @@ x-php-environment:
         JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
         JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
         PHP_INI_DIRECTIVES: ${PHP_INI_DIRECTIVES:-upload_max_filesize=250M; post_max_size = 250M; memory_limit=256M}
-        MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/messages}
-        MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/import}
-        MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/core}
-        MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/export}
-        MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
-        MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
-        MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
+        MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/messages}
+        MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/import}
+        MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/core}
+        MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/export}
+        MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/domain}
+        MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/chanel}
+        MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/segment}
 x-php-messenger:
     - &php-messenger
         working_dir: /srv/app
@@ -49,11 +49,13 @@ x-php-messenger:
         environment:
             <<: *php-environment
         depends_on:
+            - consul
             - postgres
-            - haproxy
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import channel export core  event segment
+            - rabbitmq
+        command: bin/console messenger:consume --sleep=10 --memory-limit=128M --time-limit=3600 -vv import channel export core event segment
         healthcheck:
             disable: true
+        restart: on-failure
 services:
     postgres:
         build:
@@ -81,7 +83,7 @@ services:
         working_dir: /srv/app
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
-            - ./backend:/srv/app:cached
+            - ./backend:/srv/app:delegated
         environment:
             <<: *php-environment
         depends_on:
@@ -95,31 +97,41 @@ services:
         working_dir: /srv/app
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
         volumes:
-            - ./backend:/srv/app:cached
+            - ./backend:/srv/app:delegated
         environment:
             <<: *php-environment
         command: ["crond"]
+    rabbitmq:
+        <<: *rabbitmq
+        hostname: rabbitmq
+        environment:
+            <<: *rabbitmq-environment
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:15672"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
     php-messenger-import:
         <<: *php-messenger
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv import
+        command: bin/console messenger:consume --sleep=${IMPORT_WORKER_SLEEP:-1} --memory-limit=${IMPORT_WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv import
     php-messenger-channel:
         <<: *php-messenger
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv channel
+        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv channel
     php-messenger-export:
         <<: *php-messenger
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv export
+        command: bin/console messenger:consume --sleep=${EXPORT_WORKER_SLEEP:-1} --memory-limit=${EXPORT_WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv export
     php-messenger-core:
         <<: *php-messenger
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv core
+        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv core
     php-messenger-event:
         <<: *php-messenger
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv event
+        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv event
     php-messenger-segment:
         <<: *php-messenger
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv segment
+        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv segment
     php-messenger-completeness:
         <<: *php-messenger
-        command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv completeness
+        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv completeness
     nginx:
         build:
             context: ./
@@ -171,34 +183,5 @@ services:
         image: consul:1.7
         healthcheck:
             test: ["CMD", "sh", "-c", "curl --fail http://localhost:8500 || exit 1"]
-    haproxy:
-        build:
-            context: "./"
-            target: haproxy
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/haproxy:${IMAGE_TAG:-latest}
-        ports:
-            - "${EXPOSED_RABBITMQ_PORT:-5672}:5672"
-            - "${EXPOSED_RABBITMQ_WEB_PORT:-15672}:15672"
-        networks:
-            default:
-                aliases:
-                    - rabbit
-    rabbitmq-01:
-        <<: *rabbitmq
-        hostname: rabbitmq-01
-        environment:
-            <<: *rabbitmq-environment
-    rabbitmq-02:
-        <<: *rabbitmq
-        hostname: rabbitmq-02
-        environment:
-            <<: *rabbitmq-environment
-            WAIT_FOR: rabbitmq-01
-    rabbitmq-03:
-        <<: *rabbitmq
-        hostname: rabbitmq-03
-        environment:
-            <<: *rabbitmq-environment
-            WAIT_FOR: rabbitmq-02
 networks:
     default:
