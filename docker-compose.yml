@@ -161,7 +161,6 @@ services:
             - "${EXPOSED_DOCS_PORT:-8002}:3000"
     mailhog:
         image: mailhog/mailhog
-        restart: always
         ports:
             - "${EXPOSED_MAILHOG_SMTP_PORT:-1025}:1025"
             - "${EXPOSED_MAILHOG_WEB_PORT:-8025}:8025"
