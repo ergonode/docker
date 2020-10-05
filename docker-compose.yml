@@ -5,7 +5,6 @@ x-rabbitmq-environment:
         RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-cookie}
         RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
         RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-        CONSUL_HOST: ${CONSUL_HOST:-consul}
 #       CONSUL_ACL_TOKEN: CONSUL_ACL_TOKEN
 x-rabbitmq:
     - &rabbitmq
@@ -13,8 +12,6 @@ x-rabbitmq:
             context: "./"
             target: rabbitmq-management
         image: ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:${IMAGE_TAG:-latest}
-        depends_on:
-            - consul
 x-cache-from:
     - &ergonode-cache-from
         cache_from:
@@ -40,6 +37,7 @@ x-php-environment:
         MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/domain}
         MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/chanel}
         MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/segment}
+        MESSENGER_TRANSPORT_COMPLETENESS_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/completeness}
 x-php-messenger:
     - &php-messenger
         working_dir: /srv/app
@@ -49,7 +47,6 @@ x-php-messenger:
         environment:
             <<: *php-environment
         depends_on:
-            - consul
             - postgres
             - rabbitmq
         command: bin/console messenger:consume --sleep=10 --memory-limit=128M --time-limit=3600 -vv import channel export core event segment
@@ -106,8 +103,11 @@ services:
         hostname: rabbitmq
         environment:
             <<: *rabbitmq-environment
+        ports:
+            - "${EXPOSED_RABBITMQ_PORT:-5672}:5672"
+            - "${EXPOSED_RABBITMQ_WEB_PORT:-15672}:15672"
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:15672"]
+            test: ["CMD", "rabbitmq-diagnostics", "-q", "status"]
             interval: 30s
             timeout: 10s
             retries: 5
@@ -179,9 +179,5 @@ services:
         ports:
             - "${EXPOSED_MAILHOG_SMTP_PORT:-1025}:1025"
             - "${EXPOSED_MAILHOG_WEB_PORT:-8025}:8025"
-    consul:
-        image: consul:1.7
-        healthcheck:
-            test: ["CMD", "sh", "-c", "curl --fail http://localhost:8500 || exit 1"]
 networks:
     default:
