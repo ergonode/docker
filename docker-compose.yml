@@ -87,6 +87,7 @@ services:
             <<: *php-environment
         depends_on:
             - postgres
+            - mailhog
     crond:
         build:
             context: "./"
@@ -165,6 +166,11 @@ services:
             - "./docs:/srv/app"
         ports:
             - "${EXPOSED_DOCS_PORT:-8002}:3000"
+    mailhog:
+        image: mailhog/mailhog
+        ports:
+            - "${EXPOSED_MAILHOG_SMTP_PORT:-1025}:1025"
+            - "${EXPOSED_MAILHOG_WEB_PORT:-8025}:8025"
     consul:
         image: consul:1.7
         healthcheck:
