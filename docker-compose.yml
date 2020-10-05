@@ -40,6 +40,7 @@ x-php-environment:
         MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
         MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
         MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
+        MESSENGER_TRANSPORT_NOTIFICATION_DSN: ${MESSENGER_TRANSPORT_NOTIFICATION_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/notification}
 x-php-messenger:
     - &php-messenger
         working_dir: /srv/app
@@ -120,6 +121,9 @@ services:
     php-messenger-completeness:
         <<: *php-messenger
         command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv completeness
+    php-messenger-notification:
+        <<: *php-messenger
+        command: bin/console messenger:consume --memory-limit=128M --time-limit=3600 -vv notification
     nginx:
         build:
             context: ./
