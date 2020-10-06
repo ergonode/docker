@@ -1,27 +1,6 @@
 # example docker-compose for running images in production environment
 # All mandatory environment variables are required
 version: "3.7"
-x-rabbitmq-environment:
-  - &rabbitmq-environment
-      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Missing mandatory value for RABBITMQ_ERLANG_COOKIE}
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?Missing mandatory value for RABBITMQ_DEFAULT_PASS}
-      CONSUL_HOST: ${CONSUL_HOST:-consul}
-#       CONSUL_ACL_TOKEN: CONSUL_ACL_TOKEN
-x-rabbitmq:
-  - &rabbitmq
-    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/rabbitmq:${IMAGE_TAG:-latest}
-    networks:
-      ergonode:
-        aliases:
-          - rabbitmq
-    deploy:
-      mode: global
-      update_config:
-        failure_action: rollback
-        order: stop-first
-    depends_on:
-      - consul
 x-networks:
   - &ergonode-networks
     networks:
@@ -54,6 +33,8 @@ x-php-environment:
       MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
       MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
       MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
+      MESSENGER_TRANSPORT_COMPLETENESS_DSN: ${MESSENGER_TRANSPORT_COMPLETENESS_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/completensess}
+      MESSENGER_TRANSPORT_NOTIFICATION_DSN: ${MESSENGER_TRANSPORT_NOTIFICATION_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/notification}
       # each enty for CRONTAB must be delimited by ; example:
       # * * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log ; * * * * * /srv/app/bin/console some:other:cmd >> /srv/app/var/log/crond.log
       CRONTAB: ${CRONTAB:-* * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log}
@@ -185,54 +166,21 @@ services:
     depends_on:
       - php
       - nuxtjs
-  consul:
-    image: consul:1.7
-    networks:
-      ergonode:
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?Missing mandatory value for RABBITMQ_DEFAULT_PASS}
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl --fail http://localhost:8500 || exit 1"]
-  haproxy:
-    image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/haproxy:${IMAGE_TAG:-latest}
-    deploy:
-      mode: global
-    ports:
-      - "${EXPOSED_RABBITMQ_PORT:-15672}:15672"
-    networks:
-      ergonode:
-        aliases:
-          - rabbit
-  rabbitmq-01:
-    <<: *rabbitmq
-    hostname: rabbitmq-01
-    volumes:
-      - rabbitmq-01:/var/lib/rabbitmq
-    environment:
-      <<: *rabbitmq-environment
-  rabbitmq-02:
-    <<: *rabbitmq
-    hostname: rabbitmq-02
-    volumes:
-      - rabbitmq-02:/var/lib/rabbitmq
-    environment:
-      <<: *rabbitmq-environment
-      WAIT_FOR: rabbitmq-01
-  rabbitmq-03:
-    <<: *rabbitmq
-    hostname: rabbitmq-03
-    volumes:
-      - rabbitmq-03:/var/lib/rabbitmq
-    environment:
-      <<: *rabbitmq-environment
-      WAIT_FOR: rabbitmq-02
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "status" ]
 volumes:
   multimedia:
   avatar:
   import:
   export:
   jwt:
-  rabbitmq-01:
-  rabbitmq-02:
-  rabbitmq-03:
+  rabbitmq:
 networks:
   ergonode:
     attachable: true
