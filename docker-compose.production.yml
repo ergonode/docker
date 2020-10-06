@@ -54,6 +54,8 @@ x-php-environment:
       MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
       MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
       MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
+      MESSENGER_TRANSPORT_COMPLETENESS_DSN: ${MESSENGER_TRANSPORT_COMPLETENESS_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/completeness}
+      MESSENGER_TRANSPORT_NOTIFICATION_DSN: ${MESSENGER_TRANSPORT_NOTIFICATION_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/notification}
       # each enty for CRONTAB must be delimited by ; example:
       # * * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log ; * * * * * /srv/app/bin/console some:other:cmd >> /srv/app/var/log/crond.log
       CRONTAB: ${CRONTAB:-* * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log}
@@ -156,6 +158,14 @@ services:
   php-messenger-completeness:
     <<: *php-messenger
     command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv completeness
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+  php-messenger-notification:
+    <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv notification
     deploy:
       replicas: 1
       update_config:
