@@ -54,7 +54,7 @@ x-php-messenger:
             - consul
             - postgres
             - rabbitmq
-        command: bin/console messenger:consume --sleep=10 --memory-limit=128M --time-limit=3600 -vv import channel export core event segment
+        command: bin/console messenger:consume --sleep=10 -m 128M -t 3600 -vv import channel export core event segment
         healthcheck:
             disable: true
         restart: on-failure
@@ -118,28 +118,28 @@ services:
             retries: 5
     php-messenger-import:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${IMPORT_WORKER_SLEEP:-1} --memory-limit=${IMPORT_WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv import
+        command: php -d memory_limit=${IMPORT_WORKER_MEMORY_LIMIT:-512M} bin/console messenger:consume --sleep=${IMPORT_WORKER_SLEEP:-1} -m ${IMPORT_WORKER_MEMORY_LIMIT:-512M} -t ${WORKER_TIME_LIMIT:-3600} -vv import
     php-messenger-channel:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv channel
+        command: php -d memory_limit=${WORKER_MEMORY_LIMIT:-128M} bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} -m ${WORKER_MEMORY_LIMIT:-128M} -t ${WORKER_TIME_LIMIT:-3600} -vv channel
     php-messenger-export:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${EXPORT_WORKER_SLEEP:-1} --memory-limit=${EXPORT_WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv export
+        command: php -d memory_limit=${EXPORT_WORKER_MEMORY_LIMIT:-512M} bin/console messenger:consume --sleep=${EXPORT_WORKER_SLEEP:-1} -m ${EXPORT_WORKER_MEMORY_LIMIT:-512M} -t ${WORKER_TIME_LIMIT:-3600} -vv export
     php-messenger-core:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv core
+        command: php -d memory_limit=${WORKER_MEMORY_LIMIT:-128M} bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} -m ${WORKER_MEMORY_LIMIT:-128M} -t ${WORKER_TIME_LIMIT:-3600} -vv core
     php-messenger-event:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv event
+        command: php -d memory_limit=${WORKER_MEMORY_LIMIT:-128M} bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} -m ${WORKER_MEMORY_LIMIT:-128M} -t ${WORKER_TIME_LIMIT:-3600} -vv event
     php-messenger-segment:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv segment
+        command: php -d memory_limit=${WORKER_MEMORY_LIMIT:-128M} bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} -m ${WORKER_MEMORY_LIMIT:-128M} -t ${WORKER_TIME_LIMIT:-3600} -vv segment
     php-messenger-completeness:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv completeness
+        command: php -d memory_limit=${WORKER_MEMORY_LIMIT:-128M} bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} -m ${WORKER_MEMORY_LIMIT:-128M} -t ${WORKER_TIME_LIMIT:-3600} -vv completeness
     php-messenger-notification:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv notification
+        command: php -d memory_limit=${WORKER_MEMORY_LIMIT:-128M} bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} -m ${WORKER_MEMORY_LIMIT:-128M} -t ${WORKER_TIME_LIMIT:-3600} -vv notification
     nginx:
         build:
             context: ./
