@@ -1,0 +1,8 @@
+# Ignore custom PHP settings
+php/conf.d/custom-*.ini
+
+# Ignore custom process in supervisor configuration
+php/supervisor/conf.d/custom-*.conf
+
+# Ignore custom Nginx settings
+nginx/conf.d/custom-*.conf
