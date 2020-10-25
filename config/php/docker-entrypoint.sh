@@ -5,10 +5,9 @@ set -e
 function genereJwtKeys() {
   local privatePath=$1
   local publicPath=$2
-  local passArg=$3
 
-  openssl genrsa -aes256 -passout "${passArg}" -out "${privatePath}" 4096
-  openssl rsa -pubout -in  "${privatePath}"  -passin "${passArg}" -out "${publicPath}"
+  openssl genrsa -aes256 -passout "pass:1234" -out "${privatePath}" 4096
+  openssl rsa -pubout -in "${privatePath}" -passin "pass:1234" -out "${publicPath}"
   chown root:www-data "${privatePath}"
   chmod 640 "${privatePath}" "${publicPath}"
 }
@@ -29,7 +28,7 @@ mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar impo
 chown -R www-data var public/multimedia public/thumbnail public/avatar import export
 
 >&2 echo "Generate JWT keys"
-genereJwtKeys "config/jwt/private.pem" "config/jwt/public.pem" 1234
+genereJwtKeys "config/jwt/private.pem" "config/jwt/public.pem"
 
 >&2 echo "Composer install"
 #composer install --prefer-dist --no-progress --no-suggest --no-interaction
