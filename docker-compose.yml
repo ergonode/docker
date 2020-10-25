@@ -22,12 +22,12 @@ services:
         entrypoint: "/entrypoint.sh"
         volumes:
             - "./backend:/srv/app:delegated"
+            - "./config/php/cron:/etc/cron.d:delegated"
             - "./config/php/conf.d/php-ini-override.ini:/usr/local/etc/php/conf.d/php-ini-override.ini"
             - "./config/php/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf"
-            - "./config/php/supervisor/conf.d:/etc/supervisor/conf.d"
-            - "./config/php/docker-entrypoint.sh:/entrypoint.sh"
+            - "./config/php/supervisor/conf.d:/etc/supervisor/conf.d:delegated"
+            - "./config/php/docker-entrypoint.sh:/entrypoint.sh:delegated"
         environment:
-            WORKER_AUTOSTART: ${WORKER_AUTOSTART}
             XDEBUG_CONFIG: ${XDEBUG_CONFIG}
             PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
             APP_URL: "http://nginx"
@@ -52,12 +52,13 @@ services:
         volumes:
             - "./backend:/srv/app:delegated"
             - "./config/nginx/nginx.conf:/etc/nginx/nginx.conf"
-            - "./config/nginx/conf.d:/etc/nginx/conf.d"
+            - "./config/nginx/conf.d:/etc/nginx/conf.d:delegated"
         working_dir: "/srv/app"
         ports:
             - "8000:80"
         depends_on:
             - "php"
+            - "nuxtjs"
 
     mailhog:
         image: "mailhog/mailhog"

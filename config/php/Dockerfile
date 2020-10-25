@@ -16,7 +16,6 @@ RUN apt-get update \
         graphviz \
         acl \
         imagemagick \
-        supervisor \
         make \
         libwebp-dev \
         libzip-dev \
@@ -37,11 +36,17 @@ RUN apt-get update \
     && docker-php-ext-enable xdebug \
     && docker-php-ext-enable imagick
 
+# install CRON
+RUN apt-get install -y cron
+
+# install Supervisor
+RUN apt-get install -y supervisor python-pip \
+    && pip install supervisor-stdout
+
 # copy PHP settings
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 # install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-#CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf", "-n"]
 CMD ["php-fpm"]
