@@ -31,9 +31,10 @@ chown -R www-data var public/multimedia public/thumbnail public/avatar import ex
 genereJwtKeys "config/jwt/private.pem" "config/jwt/public.pem"
 
 >&2 echo "Composer install"
-#composer install --prefer-dist --no-progress --no-suggest --no-interaction
-#composer dump-autoload --optimize
-#composer dump-env dev
+composer -V
+composer install --prefer-dist --no-progress --no-suggest --no-interaction
+composer dump-autoload --optimize
+composer dump-env dev
 
 >&2 echo "Waiting for db to be ready"
 waitUntil bin/console doctrine:query:sql "SELECT 1"
