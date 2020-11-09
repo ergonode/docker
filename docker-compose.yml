@@ -28,6 +28,7 @@ services:
             - "./config/php/supervisor/conf.d:/etc/supervisor/conf.d:delegated"
             - "./config/php/docker-entrypoint.sh:/entrypoint.sh:delegated"
         environment:
+            XDEBUG_ENABLE: ${XDEBUG_ENABLE}
             XDEBUG_CONFIG: ${XDEBUG_CONFIG}
             PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
             APP_URL: "http://nginx"

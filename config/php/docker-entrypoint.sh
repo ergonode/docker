@@ -45,6 +45,11 @@ bin/phing build
 >&2 echo "Database migrations"
 bin/console ergonode:migrations:migrate --no-interaction --allow-no-migration
 
+if [ ${XDEBUG_ENABLE} -eq 1 ]; then
+  >&2 echo "PHP XDebug extension enable"
+  docker-php-ext-enable xdebug
+fi
+
 >&2 echo "Setup CRON"
 service cron start &
 

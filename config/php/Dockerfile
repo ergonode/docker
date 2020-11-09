@@ -28,7 +28,6 @@ RUN apt-get update \
     && pecl install xdebug \
     && pecl install imagick \
     && docker-php-ext-enable amqp \
-    && docker-php-ext-enable xdebug \
     && docker-php-ext-enable imagick
 
 # install CRON
