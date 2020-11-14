@@ -51,6 +51,8 @@ services:
             - "./config/nginx/nginx.conf:/etc/nginx/nginx.conf"
             - "./config/nginx/conf.d:/etc/nginx/conf.d:delegated"
         working_dir: "/srv/app"
+        links:
+            - php
         ports:
             - ${NGINX_PORT}:80
 
