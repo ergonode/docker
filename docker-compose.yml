@@ -63,13 +63,15 @@ services:
             - ${MAILHOG_WEB_PORT}:8025
 
     nuxtjs:
-        image: "gerardojunior/nuxtjs:stable"
-        working_dir: "/src"
-        command: "dev"
+        build:
+            context: "./"
+            dockerfile: "./config/nuxtjs/Dockerfile"
+        command: "npm run dev"
+        working_dir: "/srv/app"
         volumes:
-            - "./frontend:/src:delegated"
+            - "./frontend:/srv/app:delegated"
         ports:
-            - ${NUXTJS_PORT}:80
+            - ${NUXTJS_PORT}:3000
         environment:
             API_BASE_URL: "http://localhost:8000/api/v1/"
 
