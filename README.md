@@ -2,10 +2,10 @@
 
 ## Ergonode Docker uses the following services
 
- - PostgreSQL 10
- - PHP 7.4
  - NGINX 1.17
- - Nodejs 12.6
+ - Nodejs 14
+ - PHP 7.4
+ - PostgreSQL 9.6
  - RabbitMQ 3.8
  
 ## Containers
@@ -89,7 +89,7 @@ If you want to enter some container
 ```shell script
 docker-compose exec php bash
 docker-compose exec postgres bash
-docker-compose exec nuxtjs bash
+docker-compose exec nuxtjs sh
 ```
 
 ### Browser side usage
