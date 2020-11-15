@@ -114,6 +114,13 @@ If you want to review messages on RabbitMQ, type address from below into your br
 http://localhost:15672
 ```
 
+## What next?
+
+- Check MacOSX compatibility
+- Check Windows 10 compatibility
+- Workers disabled by default in Supervisor
+- Upgrade PostgreSQL into version 13
+
 ## FAQ
 
 ##### What data are stored?
@@ -136,3 +143,6 @@ commiting it, create process file with `custom-` prefix. It will be ignored in G
 
 ##### I have error 413 – Request Entity Too Large
 You need increase in the nginx `client_max_body_size` and in PHP `upload_max_size`.
+
+##### Nuxt take over 100% CPU
+This is normal situation when files are recompiling. It should stops after minute.
