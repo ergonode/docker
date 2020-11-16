@@ -109,7 +109,6 @@ COPY  backend/composer.json \
     backend/phpcs.xml.dist \
     backend/behat.yml.dist \
     backend/depfile.yml \
-    backend/.travis.yml \
     backend/build.xml \
       ./
 
