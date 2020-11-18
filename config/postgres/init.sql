@@ -1,0 +1,4 @@
+CREATE ROLE ergonode LOGIN PASSWORD '123' SUPERUSER;
+
+CREATE DATABASE ergonode OWNER ergonode;
+CREATE DATABASE ergonode_test OWNER ergonode;
