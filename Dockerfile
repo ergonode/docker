@@ -108,7 +108,6 @@ COPY  backend/composer.json \
     backend/phpstan.neon.dist \
     backend/phpcs.xml.dist \
     backend/behat.yml.dist \
-    backend/depfile.yml \
     backend/build.xml \
       ./
 
@@ -147,8 +146,6 @@ RUN set -eux; \
      .env.test \
      *.dist \
      *.md \
-     .travis.yml  \
-     depfile.yml \
      config/jwt/*.pem \
      tests \
      features
