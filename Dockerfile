@@ -148,7 +148,6 @@ RUN set -eux; \
      *.dist \
      *.md \
      .travis.yml  \
-     depfile.yml \
      config/jwt/*.pem \
      tests \
      features
