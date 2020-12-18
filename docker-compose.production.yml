@@ -47,12 +47,9 @@ x-php-environment:
       APP_URL: ${APP_URL:?Missing mandatory value for APP_URL}
       TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^localhost|example\.com$}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES}
-      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/messages}
       MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/import}
       MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/core}
       MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/export}
-      MESSENGER_TRANSPORT_DOMAIN_DSN: ${MESSENGER_TRANSPORT_DOMAIN_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/domain}
-      MESSENGER_TRANSPORT_CHANNEL_DSN: ${MESSENGER_TRANSPORT_CHANNEL_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/chanel}
       MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/segment}
       MESSENGER_TRANSPORT_COMPLETENESS_DSN: ${MESSENGER_TRANSPORT_COMPLETENESS_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/completeness}
       MESSENGER_TRANSPORT_NOTIFICATION_DSN: ${MESSENGER_TRANSPORT_NOTIFICATION_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/notification}
@@ -77,7 +74,7 @@ x-php-messenger:
       depends_on:
         - postgres
         - haproxy
-      command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import channel export core  event segment
+      command: bin/console messenger:consume  --memory-limit=256M --time-limit=3600 -vv import export core segment
       restart: always
       healthcheck:
         disable: true
@@ -115,14 +112,6 @@ services:
       update_config:
         failure_action: rollback
         order: start-first
-  php-messenger-channel:
-    <<: *php-messenger
-    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv channel
-    deploy:
-      replicas: 1
-      update_config:
-        failure_action: rollback
-        order: start-first
   php-messenger-export:
     <<: *php-messenger
     command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv export
@@ -134,14 +123,6 @@ services:
   php-messenger-core:
     <<: *php-messenger
     command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv core
-    deploy:
-      replicas: 1
-      update_config:
-        failure_action: rollback
-        order: start-first
-  php-messenger-event:
-    <<: *php-messenger
-    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv event
     deploy:
       replicas: 1
       update_config:
