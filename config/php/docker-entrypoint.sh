@@ -14,6 +14,10 @@ function enableXdebug() {
   fi
 }
 
+if [[ "${NEWRELIC_ENABLE:-0}" -eq 0 ]] && [[ -f /usr/local/etc/php/conf.d/newrelic.ini  ]] ; then
+  rm /usr/local/etc/php/conf.d/newrelic.ini
+fi
+
 function jwtKeysAreCorrect() {
   local privatePath=$1
   local publicPath=$2
