@@ -33,12 +33,13 @@ x-php-environment:
         JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
         JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
         PHP_INI_DIRECTIVES: ${PHP_INI_DIRECTIVES:-upload_max_filesize=250M; post_max_size = 250M; memory_limit=256M}
-        MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/import}
+        MESSENGER_TRANSPORT_BATCH_ACTION_DSN: ${MESSENGER_TRANSPORT_BATCH_ACTION_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/batch_action}
+        MESSENGER_TRANSPORT_COMPLETENESS_DSN: ${MESSENGER_TRANSPORT_COMPLETENESS_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/completeness}
         MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/core}
         MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/export}
-        MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/segment}
-        MESSENGER_TRANSPORT_COMPLETENESS_DSN: ${MESSENGER_TRANSPORT_COMPLETENESS_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/completeness}
+        MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/import}
         MESSENGER_TRANSPORT_NOTIFICATION_DSN: ${MESSENGER_TRANSPORT_NOTIFICATION_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/notification}
+        MESSENGER_TRANSPORT_SEGMENT_DSN: ${MESSENGER_TRANSPORT_SEGMENT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/segment}
         # Newrelic to set newrelic settings please  use PHP_INI_DIRECTIVES env var
         # newrelic.license = "REPLACE_WITH_REAL_KEY" ; newrelic.appname = "Some App" ; newrelic.daemon.app_connect_timeout=15s ;
         # more info about new relic configuration  https://docs.newrelic.com/docs/agents/php-agent/configuration/php-agent-configuration
