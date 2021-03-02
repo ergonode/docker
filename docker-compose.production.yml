@@ -153,6 +153,14 @@ services:
       update_config:
         failure_action: rollback
         order: start-first
+  php-messenger-batch_action:
+    <<: *php-messenger
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv batch_action
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
   nuxtjs:
     image: ${CONTAINER_REGISTRY_BASE:?Missing mandatory value for CONTAINER_REGISTRY_BASE}/nuxtjs:${IMAGE_TAG:-latest}
     environment:
