@@ -116,7 +116,7 @@ http://localhost:15672
 If you want to see documentation, type address from below into your browser
 
 ```
-http://http://localhost:8002
+http://localhost:8002
 ```
 
 ## FAQ
