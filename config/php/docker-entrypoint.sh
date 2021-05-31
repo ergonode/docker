@@ -83,6 +83,14 @@ function createApplicationDirs()
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX import
     setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX export
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX export
+
+    setfacl -m m::rwx var
+    setfacl -m m::rwx public/multimedia
+    setfacl -m m::rwx public/thumbnail
+    setfacl -m m::rwx public/avatar
+    setfacl -m m::rwx import
+    setfacl -m m::rwx export
+
    else
       chown -R www-data var
       chown -R www-data public/multimedia
