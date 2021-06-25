@@ -1,10 +1,5 @@
-FROM node:14-alpine
+FROM node:14.17
 
-RUN apk add --update --no-cache \
-    git  \
-    python  \
-    make \
-    g++ && \
-    npm install -g create-nuxt-app
-
-ENV HOST 0.0.0.0
+CMD npm install \
+    && npm run modules:all \
+    && npm run dev

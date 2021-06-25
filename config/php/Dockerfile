@@ -47,6 +47,5 @@ ENV COMPOSER_MEMORY_LIMIT -1
 ENV COMPOSER_ALLOW_XDEBUG 1
 ENV COMPOSER_DISABLE_XDEBUG_WARN 1
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer self-update --1
 
 CMD ["php-fpm"]

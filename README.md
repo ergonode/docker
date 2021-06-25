@@ -5,7 +5,7 @@
  - NGINX 1.17
  - Nodejs 14
  - PHP 7.4
- - PostgreSQL 9.6
+ - PostgreSQL 10
  - RabbitMQ 3.8
  
 ## Containers
@@ -89,7 +89,7 @@ If you want to enter some container
 ```shell script
 docker-compose exec php bash
 docker-compose exec postgres bash
-docker-compose exec nuxtjs sh
+docker-compose exec nuxtjs bash
 ```
 
 ### Browser side usage
@@ -112,6 +112,12 @@ If you want to review messages on RabbitMQ, type address from below into your br
 
 ```
 http://localhost:15672
+```
+
+If you want to review mail on MailHog, type address from below into your browser
+
+```
+http://localhost:8025
 ```
 
 ## What next?

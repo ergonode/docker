@@ -12,7 +12,7 @@ services:
             POSTGRES_PASSWORD: "123"
             POSTGRES_DB: "postgres"
         ports:
-            - ${POSTGRES_PORT}:5432
+            - "${POSTGRES_PORT:-5432}:5432"
 
     php:
         build:
@@ -28,21 +28,23 @@ services:
             - "./config/php/supervisor/conf.d:/etc/supervisor/conf.d:delegated"
             - "./config/php/docker-entrypoint.sh:/entrypoint.sh:delegated"
         environment:
-            XDEBUG_ENABLE: ${XDEBUG_ENABLE}
-            XDEBUG_CONFIG: ${XDEBUG_CONFIG}
-            PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
+            SUPERVISOR_ENABLE: "${SUPERVISOR_ENABLE:-0}"
+            XDEBUG_ENABLE: "${XDEBUG_ENABLE:-0}"
+            XDEBUG_CONFIG: "${XDEBUG_CONFIG:-remote_enable=1 remote_host=host.docker.internal remote_connect_back=0}"
+            PHP_IDE_CONFIG: "${PHP_IDE_CONFIG:-host.docker.internal}"
             APP_URL: "http://nginx"
-        links:
+        depends_on:
             - "postgres"
+            - "rabbitmq"
 
     rabbitmq:
-        image: "rabbitmq:3.8"
+        image: "rabbitmq:3.8-management"
         environment:
-            RABBITMQ_DEFAULT_USER: "ergonode"
-            RABBITMQ_DEFAULT_PASS: "ergonode"
+            RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER:-guest}"
+            RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS:-guest}"
         ports:
-            - ${RABBITMQ_AMQP_PORT}:5672
-            - ${RABBITMQ_WEB_PORT}:15672
+            - "${RABBITMQ_AMQP_PORT:-5672}:5672"
+            - "${RABBITMQ_WEB_PORT:-15672}:15672"
 
     nginx:
         image: "nginx:1.17"
@@ -51,29 +53,31 @@ services:
             - "./config/nginx/nginx.conf:/etc/nginx/nginx.conf"
             - "./config/nginx/conf.d:/etc/nginx/conf.d:delegated"
         working_dir: "/srv/app"
-        links:
+        depends_on:
             - php
         ports:
-            - ${NGINX_PORT}:80
+            - "${NGINX_PORT:-8000}:80"
 
     mailhog:
         image: "mailhog/mailhog"
         ports:
-            - ${MAILHOG_SMTP_PORT}:1025
-            - ${MAILHOG_WEB_PORT}:8025
+            - "${MAILHOG_SMTP_PORT:-1025}:1025"
+            - "${MAILHOG_WEB_PORT:-8025}:8025"
 
     nuxtjs:
-        build:
-            context: "./"
-            dockerfile: "./config/nuxtjs/Dockerfile"
-        command: "npm run dev"
+        build: "./config/nuxtjs"
         working_dir: "/srv/app"
+        depends_on:
+            - nginx
         volumes:
             - "./frontend:/srv/app:delegated"
+            - "./config/nuxtjs/docker-entrypoint.sh:/entrypoint.sh:delegated"
         ports:
-            - ${NUXTJS_PORT}:3000
+            - "${NUXTJS_PORT:-80}:3000"
         environment:
+            HOST: "0.0.0.0"
             API_BASE_URL: "http://localhost:8000/api/v1/"
+            EXPOSED_NODE_PORT: "${EXPOSED_NODE_PORT:-80}"
 
 networks:
     default:

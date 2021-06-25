@@ -53,8 +53,10 @@ fi
 >&2 echo "Setup CRON"
 service cron start &
 
->&2 echo "Setup Supervisor"
-service supervisor start &
+if [ ${SUPERVISOR_ENABLE} -eq 1 ]; then
+  >&2 echo "Setup Supervisor"
+  service supervisor start &
+fi
 
 >&2 echo "Initialization finished"
 exec "php-fpm"
