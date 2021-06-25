@@ -2,12 +2,17 @@
 
 ## Ergonode Docker uses the following services
 
- - PostgreSQL 10
- - PHP 7.4
  - NGINX 1.17
- - Docsify 4
- - Nodejs 12.6 
+ - Nodejs 14
+ - PHP 7.4
+ - PostgreSQL 9.6
  - RabbitMQ 3.8
+ 
+## Containers
+
+### PHP
+
+Container with PHP and Supervisor. Supervisor handle background workers and PHP FPM.
 
 ## Development use
 
@@ -22,11 +27,7 @@ git clone git@github.com:ergonode/docker.git ergonode
 cd ergonode
 git clone git@github.com:ergonode/frontend.git
 git clone git@github.com:ergonode/backend.git
-git clone git@github.com:ergonode/docs.git
 ```
-
-If you want to test ergonode in multiple directories you need to create the  `.env` file and set
-`COMPOSE_PROJECT_NAME` env var to some unique value.
 
 If you want change any environment variable you can optionally change this in the `.env` file. 
 And all environment variables used by our docker you can find in the `docker-compose.yml` files.
@@ -88,7 +89,7 @@ If you want to enter some container
 ```shell script
 docker-compose exec php bash
 docker-compose exec postgres bash
-docker-compose exec nuxtjs bash
+docker-compose exec nuxtjs sh
 ```
 
 ### Browser side usage
@@ -113,36 +114,35 @@ If you want to review messages on RabbitMQ, type address from below into your br
 http://localhost:15672
 ```
 
-If you want to see documentation, type address from below into your browser
+## What next?
 
-```
-http://localhost:8002
-```
+- Check MacOSX compatibility
+- Check Windows 10 compatibility
+- Workers disabled by default in Supervisor
+- Upgrade PostgreSQL into version 13
 
 ## FAQ
 
-##### I have error 413 – Request Entity Too Large
-You need increase in the nginx `client_max_body_size` and in php `upload_max_size`.
-
-##### How to increase the nginx client_max_body_size and in php upload max size?
-In the .env file please set `NGINX_HTTP_DIRECTIVES` to `client_max_body_size 250m;` or higher value
-`NGINX_HTTP_DIRECTIVES="client_max_body_size 250m;`.
-Also you can set `PHP_INI_DIRECTIVES` to `upload_max_filesize=250M; post_max_size = 250M;`
-
-##### How to increase php memory limit?
-In the `.env` file please set `PHP_INI_DIRECTIVES` to `memory_limit=1024M;` or higher value
-```
-PHP_INI_DIRECTIVES="memory_limit=1024M;" 
-```
-
 ##### What data are stored?
-For now only database in `data` folder
+For now only database in `data` folder.
 
-##### Where can i change PHP settings?
-In the environment variable `PHP_INI_DIRECTIVES` each setting must be delimited by `;`
+#### How to cleanup database?
+Remove directory `data/.postgres`. Database will be recreated without data.
 
-##### Where can i change nginx http settings?
-In the environment variable `NGINX_HTTP_DIRECTIVES` each setting must be delimited by `;`
+##### Where can I change PHP settings?
+Add new `ini` file in `config/php/conf.d` directory. If you want to set only for you settings, but without 
+commiting it, create configuration file with `custom-` prefix. It will be ignored in GIT.
 
-##### What if I have better idea?
-No problem ! Just tell us about your idea and we will discuse it. Bring lot of beers!
+##### Where can I change Nginx settings?
+Add new `conf` file in `config/nginx/conf.d` directory. If you want to set only for you settings, but without 
+commiting it, create configuration file with `custom-` prefix. It will be ignored in GIT.
+
+##### How can I add new Supervisor process?
+Add new `conf` file in `config/php/supervisor/conf.d` directory. If you want to create custom process, but without 
+commiting it, create process file with `custom-` prefix. It will be ignored in GIT.
+
+##### I have error 413 – Request Entity Too Large
+You need increase in the nginx `client_max_body_size` and in PHP `upload_max_size`.
+
+##### Nuxt take over 100% CPU
+This is normal situation when files are recompiling. It should stops after minute.
