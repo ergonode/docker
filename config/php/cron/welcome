@@ -1,0 +1,1 @@
+@reboot root echo "Welcome into Ergonode"

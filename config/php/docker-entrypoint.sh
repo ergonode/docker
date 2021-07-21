@@ -2,62 +2,14 @@
 
 set -e
 
-function disableXdebug() {
-  if [ -f "/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini" ] ; then
-    mv /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini /usr/local/etc/docker-php-ext-xdebug.ini
-  fi
-}
-
-function enableXdebug() {
-  if [ -f "/usr/local/etc/docker-php-ext-xdebug.ini" ] ; then
-    mv /usr/local/etc/docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-  fi
-}
-
-if [[ "${NEWRELIC_ENABLE:-0}" -eq 0 ]] && [[ -f /usr/local/etc/php/conf.d/newrelic.ini  ]] ; then
-  rm /usr/local/etc/php/conf.d/newrelic.ini
-fi
-
-function jwtKeysAreCorrect() {
-  local privatePath=$1
-  local publicPath=$2
-  local passArg=$3
-
-  echo 1234 > /tmp/to-sign.txt
-  openssl dgst -sha256 -sign   "${privatePath}" -passin "${passArg}"  -out /tmp/sign.sha256 /tmp/to-sign.txt 2>/dev/null
-  openssl dgst -sha256 -verify "${publicPath}" -signature /tmp/sign.sha256 /tmp/to-sign.txt 2>/dev/null
-}
-
 function genereJwtKeys() {
   local privatePath=$1
   local publicPath=$2
-  local passArg=$3
 
-  openssl genrsa -aes256 -passout "${passArg}" -out "${privatePath}" 4096
-  openssl rsa -pubout -in  "${privatePath}"  -passin "${passArg}" -out "${publicPath}"
-}
-
-function fixPermissionForJwtKeys() {
-  local privatePath=$1
-  local publicPath=$2
-
+  openssl genrsa -aes256 -passout "pass:1234" -out "${privatePath}" 4096
+  openssl rsa -pubout -in "${privatePath}" -passin "pass:1234" -out "${publicPath}"
   chown root:www-data "${privatePath}"
-  chmod 640 "${privatePath}"
-  chmod 640  "${publicPath}"
-}
-
-
-function genereJwtKeysIfInvalid() {
-  local privatePath=$1
-  local publicPath=$2
-  local passArg=$3
-
-  if ! jwtKeysAreCorrect  "${privatePath}" "${publicPath}" "${passArg}"; then
-    >&2 echo "Generating jwt keys..."
-    genereJwtKeys "${privatePath}" "${publicPath}" "${passArg}"
-  fi
-
-  fixPermissionForJwtKeys "${privatePath}" "${publicPath}"
+  chmod 640 "${privatePath}" "${publicPath}"
 }
 
 function waitUntil() {
@@ -66,141 +18,45 @@ function waitUntil() {
   done
 }
 
-function createApplicationDirs()
-{
-  mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar import export
-  >&2 echo "Setting file permissions..."
-  if setfacl -m u:www-data:rwX -m u:"$(whoami)":rwX var ; then
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/multimedia
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/thumbnail
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX public/avatar
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX import
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX import
-    setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX export
-    setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX export
-   else
-      chown -R www-data var
-      chown -R www-data public/multimedia
-      chown -R www-data public/thumbnail
-      chown -R www-data public/avatar
-      chown -R www-data import
-      chown -R www-data export
-   fi
-}
-
-function createAmqpVhost() {
-    local scheme=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['scheme'];")
-
-    if [[ "${scheme}" != 'amqp' ]] ; then
-        return 0
-    fi
-
-    local host=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['host'];")
-    #local port=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['port'];")
-    local port=15672
-    local user=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['user'];")
-    local pass=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['pass'];")
-    local path=$(echo $1 | php -r "echo @parse_url(stream_get_contents(STDIN))['path'];")
-    local vhost=$(echo $1 | php -r "echo (@explode('/', @parse_url(stream_get_contents(STDIN))['path']))[1];")
-
-    local  url="http://${host}:${port}/api/vhosts/${vhost}"
-    local  userPass="${user}:${pass}"
-    curl -u "${userPass}" --fail "${url}" ||  curl  --silent  --show-error  -u "${userPass}" --fail -X PUT "${url}"
-}
-
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
 	set -- php-fpm "$@"
 fi
 
+>&2 echo "Create directories"
+mkdir -p var/cache var/log public/multimedia public/thumbnail public/avatar import export
+chown -R www-data var public/multimedia public/thumbnail public/avatar import export
 
-envsubst < /usr/local/etc/php/php-ini-directives.ini.template | sed "s~;\s*~\n~g"  > /usr/local/etc/php/conf.d/php-ini-directives.ini
+>&2 echo "Generate JWT keys"
+genereJwtKeys "config/jwt/private.pem" "config/jwt/public.pem"
 
-if [ "$1" = 'php-fpm' ] || [[ "$1" =~ (vendor/)?bin/.* ]] || [ "$1" = 'composer' ]; then
+>&2 echo "Composer install"
+composer -V
+composer install --prefer-dist --no-progress --no-suggest --no-interaction
+composer dump-autoload --optimize
+composer dump-env dev
 
-	PHP_INI_RECOMMENDED="$PHP_INI_DIR/php.ini-production"
-	if [ "$APP_ENV" != 'prod' ]; then
-		PHP_INI_RECOMMENDED="$PHP_INI_DIR/php.ini-development"
-	fi
-	echo "Linking ${PHP_INI_RECOMMENDED} > ${PHP_INI_DIR}/php.ini"
-	ln -sf "$PHP_INI_RECOMMENDED" "$PHP_INI_DIR/php.ini"
+>&2 echo "Waiting for db to be ready"
+waitUntil bin/console doctrine:query:sql "SELECT 1"
 
-    disableXdebug
-    genereJwtKeysIfInvalid "${JWT_PRIVATE_KEY_PATH}" "${JWT_PUBLIC_KEY_PATH}" env:JWT_PASSPHRASE
+>&2 echo "Build application"
+bin/phing build
+
+>&2 echo "Database migrations"
+bin/console ergonode:migrations:migrate --no-interaction --allow-no-migration
+
+if [ ${XDEBUG_ENABLE} -eq 1 ]; then
+  >&2 echo "PHP XDebug extension enable"
+  docker-php-ext-enable xdebug
 fi
 
-if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
+>&2 echo "Setup CRON"
+service cron start &
 
-    createAmqpVhost "${MESSENGER_TRANSPORT_IMPORT_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_CORE_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_EXPORT_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_NOTIFICATION_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_BATCH_ACTION_DSN}"
-
-    bin/console messenger:setup-transports --no-interaction import
-    bin/console messenger:setup-transports --no-interaction export
-    bin/console messenger:setup-transports --no-interaction core
-    bin/console messenger:setup-transports --no-interaction notification
-    bin/console messenger:setup-transports --no-interaction batch_action
-
-    >&2 echo "messenger initialization finished"
+if [ ${SUPERVISOR_ENABLE} -eq 1 ]; then
+  >&2 echo "Setup Supervisor"
+  service supervisor start &
 fi
 
-if [ "$1" = 'php-fpm' ] ; then
-    createApplicationDirs
-
-    if [ "$APP_ENV" != 'prod' ]; then
-        composer install --prefer-dist --no-progress --no-suggest --no-interaction
-    fi
-
-    >&2 echo "Waiting for db to be ready..."
-    waitUntil bin/console doctrine:query:sql "SELECT 1"
-
-    if [ "$APP_ENV" != 'prod' ]; then
-      bin/phing build
-    fi
-
-    bin/console ergonode:migrations:migrate --no-interaction --allow-no-migration
-
-    if [ "$APP_ENV" != 'prod' ]; then
-        enableXdebug
-        echo -e "\e[30;48;5;82mergonode  api is available at http://localhost:${EXPOSED_NGINX_PORT} \e[0m"
-    fi
-
-    >&2 echo "app initialization finished"
-fi
-
-if [ "$1" = 'crond' ] ; then
-    createApplicationDirs
-
-    function finish {
-      jobs=$(jobs -p)
-      if [[ -n ${jobs} ]] ; then
-        kill $(jobs -p)
-      fi
-    }
-    trap finish EXIT
-
-    # each enty for CRONTAB must be delimited by ; example:
-    # * * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log ; * * * * * /srv/app/bin/console some:other:cmd >> /srv/app/var/log/crond.log
-
-    echo  "${CRONTAB:-* * * * * /srv/app/bin/console channel:export:schedule >> /srv/app/var/log/crond.log}"  | sed "s~;\s*~\n~g" > /tmp/cron.install
-    su -s /bin/bash www-data -c 'cat /tmp/cron.install | crontab -'
-    rm -f /tmp/cron.install
-    >&2 echo "installed crontab"
-    su -s /bin/bash www-data -c 'crontab -l'
-    su -s /bin/bash www-data -c "touch /srv/app/var/log/crond.log"
-    crond -f &
-    tail -f /srv/app/var/log/crond.log
-
-else
-  exec docker-php-entrypoint "$@"
-fi
-
-
-
+>&2 echo "Initialization finished"
+exec "php-fpm"

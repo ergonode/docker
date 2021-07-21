@@ -1,192 +1,83 @@
-#docker-compose for development
 version: "3.7"
-x-rabbitmq-environment:
-    - &rabbitmq-environment
-        RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-cookie}
-        RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-ergonode}
-        RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-ergonode}
-        CONSUL_HOST: ${CONSUL_HOST:-consul}
-#       CONSUL_ACL_TOKEN: CONSUL_ACL_TOKEN
-x-rabbitmq:
-    - &rabbitmq
-        build:
-            context: "./"
-            target: rabbitmq-management
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:${IMAGE_TAG:-latest}
-        depends_on:
-            - consul
-x-cache-from:
-    - &ergonode-cache-from
-        cache_from:
-            - ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:latest
-            - ${CONTAINER_REGISTRY_BASE:-ergonode}/php:latest
-            - ${CONTAINER_REGISTRY_BASE:-ergonode}/nuxtjs:latest
-            - ${CONTAINER_REGISTRY_BASE:-ergonode}/docsify:latest
-            - ${CONTAINER_REGISTRY_BASE:-ergonode}/rabbitmq:latest
-            - ${CONTAINER_REGISTRY_BASE:-ergonode}/haproxy:latest
-x-php-environment:
-    - &php-environment
-        XDEBUG_CONFIG: ${XDEBUG_CONFIG:-remote_enable=1 remote_connect_back=1}
-        PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-serverName=localhost}
-        APP_URL: ${APP_URL:-http://nginx}
-        JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-config/jwt/private.pem}
-        JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
-        JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
-        PHP_INI_DIRECTIVES: ${PHP_INI_DIRECTIVES:-upload_max_filesize=250M; post_max_size = 250M; memory_limit=256M}
-        MESSENGER_TRANSPORT_BATCH_ACTION_DSN: ${MESSENGER_TRANSPORT_BATCH_ACTION_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/batch_action}
-        MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/core}
-        MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/export}
-        MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/import}
-        MESSENGER_TRANSPORT_NOTIFICATION_DSN: ${MESSENGER_TRANSPORT_NOTIFICATION_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/notification}
-        # Newrelic to set newrelic settings please  use PHP_INI_DIRECTIVES env var
-        # newrelic.license = "REPLACE_WITH_REAL_KEY" ; newrelic.appname = "Some App" ; newrelic.daemon.app_connect_timeout=15s ;
-        # more info about new relic configuration  https://docs.newrelic.com/docs/agents/php-agent/configuration/php-agent-configuration
-        NEWRELIC_ENABLE: ${NEWRELIC_ENABLE:-0}
-x-php-messenger:
-    - &php-messenger
-        working_dir: /srv/app
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
-        volumes:
-            - ./backend:/srv/app
-        environment:
-            <<: *php-environment
-        depends_on:
-            - consul
-            - postgres
-            - rabbitmq
-        command: bin/console messenger:consume --sleep=10 --memory-limit=128M --time-limit=3600 -vv import export core segment
-        healthcheck:
-            disable: true
-        restart: on-failure
+
 services:
+
     postgres:
-        build:
-            context: "./"
-            target: postgres
-            <<: *ergonode-cache-from
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/postgres:${IMAGE_TAG:-latest}
+        image: "postgres:10"
         volumes:
             - "./data/.postgres:/var/lib/postgresql/data:delegated"
+            - "./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql"
         environment:
-            POSTGRES_USER: ${POSTGRES_USER:-postgres}
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123}
-            POSTGRES_DB: ${POSTGRES_DB:-postgres}
-            APP_USER: ${APP_USER:-ergonode}
-            APP_USER_PASSWORD: ${APP_USER_PASSWORD:-123}
-            APP_DB: ${APP_DB:-ergonode}
-            APP_TEST_DB: ${APP_TEST_DB:-ergonode_test}
+            POSTGRES_USER: "postgres"
+            POSTGRES_PASSWORD: "123"
+            POSTGRES_DB: "postgres"
         ports:
-            - "${EXPOSED_POSTGRES_PORT:-5432}:5432"
+            - "${POSTGRES_PORT:-5432}:5432"
+
     php:
         build:
             context: "./"
-            target: php
-            <<: *ergonode-cache-from
-        working_dir: /srv/app
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
+            dockerfile: "./config/php/Dockerfile"
+        working_dir: "/srv/app"
+        entrypoint: "/entrypoint.sh"
         volumes:
-            - ./backend:/srv/app:delegated
+            - "./backend:/srv/app:delegated"
+            - "./config/php/cron:/etc/cron.d:delegated"
+            - "./config/php/conf.d/php-ini-override.ini:/usr/local/etc/php/conf.d/php-ini-override.ini"
+            - "./config/php/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf"
+            - "./config/php/supervisor/conf.d:/etc/supervisor/conf.d:delegated"
+            - "./config/php/docker-entrypoint.sh:/entrypoint.sh:delegated"
         environment:
-            <<: *php-environment
+            SUPERVISOR_ENABLE: "${SUPERVISOR_ENABLE:-0}"
+            XDEBUG_ENABLE: "${XDEBUG_ENABLE:-0}"
+            XDEBUG_CONFIG: "${XDEBUG_CONFIG:-remote_enable=1 remote_host=host.docker.internal remote_connect_back=0}"
+            PHP_IDE_CONFIG: "${PHP_IDE_CONFIG:-host.docker.internal}"
+            APP_URL: "http://nginx"
         depends_on:
-            - postgres
-            - mailhog
-    crond:
-        build:
-            context: "./"
-            target: php
-            <<: *ergonode-cache-from
-        working_dir: /srv/app
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/php:${IMAGE_TAG:-latest}
-        volumes:
-            - ./backend:/srv/app:delegated
-        environment:
-            <<: *php-environment
-        command: ["crond"]
+            - "postgres"
+            - "rabbitmq"
+
     rabbitmq:
-        <<: *rabbitmq
-        hostname: rabbitmq
+        image: "rabbitmq:3.8-management"
         environment:
-            <<: *rabbitmq-environment
+            RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER:-guest}"
+            RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS:-guest}"
         ports:
-            - "${EXPOSED_RABBITMQ_PORT:-5672}:5672"
-            - "${EXPOSED_RABBITMQ_WEB_PORT:-15672}:15672"
-        healthcheck:
-            test: ["CMD", "rabbitmq-diagnostics", "-q", "status"]
-            interval: 30s
-            timeout: 10s
-            retries: 5
-    php-messenger-import:
-        <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${IMPORT_WORKER_SLEEP:-1} --memory-limit=${IMPORT_WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv import
-    php-messenger-export:
-        <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${EXPORT_WORKER_SLEEP:-1} --memory-limit=${EXPORT_WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv export
-    php-messenger-core:
-        <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv core
-    php-messenger-segment:
-        <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv segment
-    php-messenger-completeness:
-        <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv completeness
-    php-messenger-notification:
-        <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv notification
-    php-messenger-batch_action:
-        <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv batch_action
+            - "${RABBITMQ_AMQP_PORT:-5672}:5672"
+            - "${RABBITMQ_WEB_PORT:-15672}:15672"
+
     nginx:
-        build:
-            context: ./
-            target: nginx
-            <<: *ergonode-cache-from
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/nginx:${IMAGE_TAG:-latest}
+        image: "nginx:1.17"
         volumes:
-            - ./backend:/srv/app
-        working_dir: /srv/app
-        environment:
-            PHP_HOST: ${PHP_HOST:-php}
-            NUXTJS_HOST: ${PHP_HOST:-nuxtjs}
-            NGINX_HTTP_DIRECTIVES: ${NGINX_HTTP_DIRECTIVES:-client_max_body_size 250m;}
-        ports:
-            - "${EXPOSED_NGINX_PORT:-8000}:80"
+            - "./backend:/srv/app:delegated"
+            - "./config/nginx/nginx.conf:/etc/nginx/nginx.conf"
+            - "./config/nginx/conf.d:/etc/nginx/conf.d:delegated"
+        working_dir: "/srv/app"
         depends_on:
             - php
-    nuxtjs:
-        build:
-            context: "./"
-            target: nuxtjs
-            <<: *ergonode-cache-from
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/nuxtjs:${IMAGE_TAG:-latest}
-        working_dir: /srv/app
-        volumes:
-            - "./frontend:/srv/app"
         ports:
-            - "${EXPOSED_NODE_PORT:-80}:80"
-        environment:
-            EXPOSED_NODE_PORT: ${EXPOSED_NODE_PORT:-80}
-            API_BASE_URL: ${API_BASE_URL:-http://localhost:8000/api/v1/}
-    docsify:
-        build:
-            context: "./"
-            target: docsify
-            <<: *ergonode-cache-from
-        image: ${CONTAINER_REGISTRY_BASE:-ergonode}/docs:${IMAGE_TAG:-latest}
-        working_dir: /srv/app
-        volumes:
-            - "./docs:/srv/app"
-        ports:
-            - "${EXPOSED_DOCS_PORT:-8002}:3000"
+            - "${NGINX_PORT:-8000}:80"
+
     mailhog:
-        image: mailhog/mailhog
+        image: "mailhog/mailhog"
         ports:
-            - "${EXPOSED_MAILHOG_SMTP_PORT:-1025}:1025"
-            - "${EXPOSED_MAILHOG_WEB_PORT:-8025}:8025"
-    consul:
-        image: consul:1.7
-        healthcheck:
-            test: ["CMD", "sh", "-c", "curl --fail http://localhost:8500 || exit 1"]
+            - "${MAILHOG_SMTP_PORT:-1025}:1025"
+            - "${MAILHOG_WEB_PORT:-8025}:8025"
+
+    nuxtjs:
+        build: "./config/nuxtjs"
+        working_dir: "/srv/app"
+        depends_on:
+            - nginx
+        volumes:
+            - "./frontend:/srv/app:delegated"
+            - "./config/nuxtjs/docker-entrypoint.sh:/entrypoint.sh:delegated"
+        ports:
+            - "${NUXTJS_PORT:-80}:3000"
+        environment:
+            HOST: "0.0.0.0"
+            API_BASE_URL: "http://localhost:8000/api/v1/"
+            EXPOSED_NODE_PORT: "${EXPOSED_NODE_PORT:-80}"
+
 networks:
     default:
