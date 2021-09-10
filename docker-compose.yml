@@ -33,7 +33,6 @@ x-php-environment:
         JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-config/jwt/public.pem}
         JWT_PASSPHRASE: ${JWT_PASSPHRASE:-1234}
         PHP_INI_DIRECTIVES: ${PHP_INI_DIRECTIVES:-upload_max_filesize=250M; post_max_size = 250M; memory_limit=256M}
-        MESSENGER_TRANSPORT_BATCH_ACTION_DSN: ${MESSENGER_TRANSPORT_BATCH_ACTION_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/batch_action}
         MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/core}
         MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/export}
         MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/import}
@@ -136,7 +135,7 @@ services:
         command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv notification
     php-messenger-batch_action:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv batch_action
+        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv batch-action
     nginx:
         build:
             context: ./
