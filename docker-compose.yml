@@ -135,7 +135,7 @@ services:
         command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv notification
     php-messenger-batch_action:
         <<: *php-messenger
-        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv batch-action
+        command: bin/console messenger:consume --sleep=${WORKER_SLEEP:-1} --memory-limit=${WORKER_MEMORY_LIMIT:-128M} --time-limit=${WORKER_TIME_LIMIT:-3600} -vv batch_action
     nginx:
         build:
             context: ./

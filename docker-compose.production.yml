@@ -152,7 +152,7 @@ services:
         order: start-first
   php-messenger-batch_action:
     <<: *php-messenger
-    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv batch-action
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv batch_action
     deploy:
       replicas: 1
       update_config:
