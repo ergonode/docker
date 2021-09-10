@@ -140,13 +140,11 @@ if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
     createAmqpVhost "${MESSENGER_TRANSPORT_CORE_DSN}"
     createAmqpVhost "${MESSENGER_TRANSPORT_EXPORT_DSN}"
     createAmqpVhost "${MESSENGER_TRANSPORT_NOTIFICATION_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_BATCH_ACTION_DSN}"
 
     bin/console messenger:setup-transports --no-interaction import
     bin/console messenger:setup-transports --no-interaction export
     bin/console messenger:setup-transports --no-interaction core
     bin/console messenger:setup-transports --no-interaction notification
-    bin/console messenger:setup-transports --no-interaction batch_action
 
     >&2 echo "messenger initialization finished"
 fi

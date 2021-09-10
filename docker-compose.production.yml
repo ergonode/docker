@@ -47,7 +47,6 @@ x-php-environment:
       APP_URL: ${APP_URL:?Missing mandatory value for APP_URL}
       TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^localhost|example\.com$}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES}
-      MESSENGER_TRANSPORT_BATCH_ACTION_DSN: ${MESSENGER_TRANSPORT_BATCH_ACTION_DSN:-amqp://ergonode:ergonode@rabbitmq:5672/%2f/batch_action}
       MESSENGER_TRANSPORT_CORE_DSN: ${MESSENGER_TRANSPORT_CORE_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/core}
       MESSENGER_TRANSPORT_EXPORT_DSN: ${MESSENGER_TRANSPORT_EXPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/export}
       MESSENGER_TRANSPORT_IMPORT_DSN: ${MESSENGER_TRANSPORT_IMPORT_DSN:-amqp://ergonode:ergonode@rabbit:5672/%2f/import}
@@ -153,7 +152,7 @@ services:
         order: start-first
   php-messenger-batch_action:
     <<: *php-messenger
-    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv batch_action
+    command: bin/console messenger:consume  --memory-limit=128M --time-limit=3600 -vv batch-action
     deploy:
       replicas: 1
       update_config:
