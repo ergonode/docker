@@ -145,7 +145,7 @@ RUN set -eux; \
     chmod +x bin/console; \
 	composer dump-autoload --optimize; \
 	composer dump-env prod; \
-    composer run-script post-install-cmd; \
+    COMPOSER_MEMORY_LIMIT=512M composer run-script post-install-cmd; \
 	bin/console cache:clear --env=prod --no-debug ; \
 	php -d memory_limit=256M bin/console cache:clear --env=dev
 
