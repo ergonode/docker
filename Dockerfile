@@ -145,9 +145,9 @@ RUN set -eux; \
     chmod +x bin/console; \
 	composer dump-autoload --optimize; \
 	composer dump-env prod; \
-    composer run-script post-install-cmd; \
 	php -d memory_limit=-1 bin/console cache:clear --env=prod --no-debug ; \
-	php -d memory_limit=-1 bin/console cache:clear --env=dev
+	php -d memory_limit=-1 bin/console cache:clear --env=dev; \
+	bin/console assets:install
 
 FROM php as php_production
 	# do not use .env  in production
