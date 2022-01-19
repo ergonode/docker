@@ -14,6 +14,10 @@ function enableXdebug() {
   fi
 }
 
+if [[ "${NEWRELIC_ENABLE:-0}" -eq 0 ]] && [[ -f /usr/local/etc/php/conf.d/newrelic.ini  ]] ; then
+  rm /usr/local/etc/php/conf.d/newrelic.ini
+fi
+
 function jwtKeysAreCorrect() {
   local privatePath=$1
   local publicPath=$2
@@ -132,21 +136,12 @@ fi
 
 if [[ "$1" =~ bin/console ]] && [[ "$2" = 'messenger:consume' ]]; then
 
-    createAmqpVhost "${MESSENGER_TRANSPORT_DSN}"
     createAmqpVhost "${MESSENGER_TRANSPORT_IMPORT_DSN}"
     createAmqpVhost "${MESSENGER_TRANSPORT_EXPORT_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_DOMAIN_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_CHANNEL_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_SEGMENT_DSN}"
-    createAmqpVhost "${MESSENGER_TRANSPORT_COMPLETENESS_DSN}"
     createAmqpVhost "${MESSENGER_TRANSPORT_NOTIFICATION_DSN}"
 
     bin/console messenger:setup-transports --no-interaction import
-    bin/console messenger:setup-transports --no-interaction channel
     bin/console messenger:setup-transports --no-interaction export
-    bin/console messenger:setup-transports --no-interaction event
-    bin/console messenger:setup-transports --no-interaction segment
-    bin/console messenger:setup-transports --no-interaction completeness
     bin/console messenger:setup-transports --no-interaction notification
 
     >&2 echo "messenger initialization finished"

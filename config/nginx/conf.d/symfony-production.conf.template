@@ -10,7 +10,7 @@ server {
     server_name symfony;
     root /srv/app/public;
 
-    location ~* ^/(api|bundles|user|multimedia|template|_wdt|_profiler) {
+    location ~* ^/(api|bundles) {
         try_files ${DOLLAR}uri /index.php${DOLLAR}is_args${DOLLAR}args;
     }
 

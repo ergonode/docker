@@ -104,13 +104,11 @@ docker-compose  -f docker-compose.deploy.yml  push
     $ env $(cat .env | grep ^[a-zA-Z] | xargs) docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
    
     Creating network ergonode_ergonode
-    Creating service ergonode_php-messenger-event
     Creating service ergonode_php-messenger-export
     Creating service ergonode_rabbitmq-02
     Creating service ergonode_php-messenger-core
     Creating service ergonode_php
     Creating service ergonode_nginx
-    Creating service ergonode_php-messenger-channel
     Creating service ergonode_php-messenger-import
     Creating service ergonode_postgres
     Creating service ergonode_rabbitmq-01

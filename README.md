@@ -113,6 +113,12 @@ If you want to review messages on RabbitMQ, type address from below into your br
 http://localhost:15672
 ```
 
+If you want to see documentation, type address from below into your browser
+
+```
+http://localhost:8002
+```
+
 ## FAQ
 
 ##### I have error 413 – Request Entity Too Large

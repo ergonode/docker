@@ -204,13 +204,11 @@ For testing you need setup local registry.
     $ env $(cat .env | grep ^[a-zA-Z] | xargs) docker stack deploy --compose-file docker-compose.production.yml --compose-file docker-compose.postgres.yml  ergonode
    
     Creating network ergonode_ergonode
-    Creating service ergonode_php-messenger-event
     Creating service ergonode_php-messenger-export
     Creating service ergonode_rabbitmq-02
     Creating service ergonode_php-messenger-core
     Creating service ergonode_php
     Creating service ergonode_nginx
-    Creating service ergonode_php-messenger-channel
     Creating service ergonode_php-messenger-import
     Creating service ergonode_postgres
     Creating service ergonode_rabbitmq-01
@@ -225,8 +223,7 @@ For testing you need setup local registry.
 
    ```bash
    $ docker stack services ergonode
-   ID                  NAME                             MODE                REPLICAS            IMAGE                                     PORTS
-   3etmk5oaiq1h        ergonode_php-messenger-channel   replicated          1/1                 localhost:5000/ergonode/php:latest        
+   ID                  NAME                             MODE                REPLICAS            IMAGE                                     PORTS        
    69uby4hcw9ar        ergonode_php-messenger-segment   replicated          1/1                 localhost:5000/ergonode/php:latest        
    8qtlwf3u3wli        ergonode_rabbitmq-01             global              1/1                 localhost:5000/ergonode/rabbitmq:latest   
    bvel8mli4ymd        ergonode_rabbitmq-03             global              1/1                 localhost:5000/ergonode/rabbitmq:latest   
@@ -239,8 +236,7 @@ For testing you need setup local registry.
    n3ukz3z6tm30        ergonode_consul                  replicated          1/1                 consul:1.7                                
    of4toxprxoaf        ergonode_rabbitmq-02             global              1/1                 localhost:5000/ergonode/rabbitmq:latest   
    rlnxa9vsuedh        ergonode_php                     replicated          1/1                 localhost:5000/ergonode/php:latest        
-   skcutkkb5fza        ergonode_haproxy                 global              1/1                 localhost:5000/ergonode/haproxy:latest    *:15672->15672/tcp
-   t3sjf8ibv5yv        ergonode_php-messenger-event     replicated          1/1                 localhost:5000/ergonode/php:latest 
+   skcutkkb5fza        ergonode_haproxy                 global              1/1                 localhost:5000/ergonode/haproxy:latest    *:15672->15672/tcp 
    ```
    This might take some time if you have a multi-node swarm, as images need to be pulled.
    It may take some time if you have a multi-node, because the images have need to be pulled by swarm nodes.
@@ -291,9 +287,7 @@ For testing you need setup local registry.
    Removing service ergonode_nginx
    Removing service ergonode_nuxtjs
    Removing service ergonode_php
-   Removing service ergonode_php-messenger-channel
    Removing service ergonode_php-messenger-core
-   Removing service ergonode_php-messenger-event
    Removing service ergonode_php-messenger-export
    Removing service ergonode_php-messenger-import
    Removing service ergonode_php-messenger-segment

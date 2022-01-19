@@ -10,6 +10,9 @@ FROM php:7.4-fpm-alpine as php
 ENV COMPOSER_ALLOW_SUPERUSER 1
 ENV COMPOSER_HOME /tmp
 ENV COMPOSER_MEMORY_LIMIT -1
+ARG NEWRELIC_URL=https://download.newrelic.com/php_agent/archive/9.14.0.290/newrelic-php5-9.14.0.290-linux-musl.tar.gz
+ARG NEWRELIC_SHA256SUM=9842f06c0834e02b2bb31e6349893532384c836a6cddccb57e827b7670e487a8
+
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # required packages and PHP extensionns
@@ -76,7 +79,19 @@ RUN set -eux ; \
     pecl install imagick ; \
     docker-php-ext-enable amqp ; \
     docker-php-ext-enable xdebug ; \
-    docker-php-ext-enable imagick
+    docker-php-ext-enable imagick ; \
+    # newrelic
+    mkdir -p /tmp/newrelic ; \
+    cd /tmp/newrelic ; \
+    curl -L "${NEWRELIC_URL}" -o newrelic.tar.gz ;  \
+    sha256sum newrelic.tar.gz  | grep "${NEWRELIC_SHA256SUM}" ; \
+    tar -xf newrelic.tar.gz ; \
+    NR_INSTALL_USE_CP_NOT_LN=1  NR_INSTALL_SILENT=1 ./newrelic-php5-*/newrelic-install install ; \
+    rm -rf /tmp/newrelic ; \
+    php --version ; \
+    rm -rf /tmp/* ; \
+    update-ca-certificates
+    # newrelic
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
@@ -108,8 +123,6 @@ COPY  backend/composer.json \
     backend/phpstan.neon.dist \
     backend/phpcs.xml.dist \
     backend/behat.yml.dist \
-    backend/depfile.yml \
-    backend/.travis.yml \
     backend/build.xml \
       ./
 
@@ -132,9 +145,9 @@ RUN set -eux; \
     chmod +x bin/console; \
 	composer dump-autoload --optimize; \
 	composer dump-env prod; \
-    composer run-script post-install-cmd; \
-	bin/console cache:clear --env=prod --no-debug ; \
-	php -d memory_limit=256M bin/console cache:clear --env=dev
+	php -d memory_limit=-1 bin/console cache:clear --env=prod --no-debug ; \
+	php -d memory_limit=-1 bin/console cache:clear --env=dev; \
+	bin/console assets:install
 
 FROM php as php_production
 	# do not use .env  in production
@@ -148,8 +161,6 @@ RUN set -eux; \
      .env.test \
      *.dist \
      *.md \
-     .travis.yml  \
-     depfile.yml \
      config/jwt/*.pem \
      tests \
      features
